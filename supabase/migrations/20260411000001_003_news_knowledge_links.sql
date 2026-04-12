@@ -1,0 +1,3 @@
+-- Migration reverted: outside_link dan inside_link tidak jadi ditambahkan.
+-- Fitur link di markdown ditangani langsung oleh ReactMarkdown custom renderer,
+-- tidak perlu kolom tambahan di database.

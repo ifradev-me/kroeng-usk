@@ -50,6 +50,8 @@ export function AchievementsGrid({ achievements }: { achievements: Achievement[]
                   <img
                     src={achievement.image_url}
                     alt={achievement.title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>

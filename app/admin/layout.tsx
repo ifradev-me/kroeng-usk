@@ -19,6 +19,7 @@ import {
   Bell,
   LogOut,
   ImageIcon,
+  Layers,
 } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ const adminNavigation = [
   { name: 'News', href: '/admin/news', icon: Newspaper },
   { name: 'Achievements', href: '/admin/achievements', icon: Trophy },
   { name: 'Members', href: '/admin/members', icon: Users },
+  { name: 'Divisions', href: '/admin/divisions', icon: Layers },
   { name: 'Gallery', href: '/admin/gallery', icon: ImageIcon },
   { name: 'Knowledge', href: '/admin/knowledge', icon: BookOpen },
   { name: 'Contacts', href: '/admin/contacts', icon: Mail, badge: true },
