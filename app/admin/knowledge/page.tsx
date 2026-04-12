@@ -30,6 +30,18 @@ import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import type { Components } from 'react-markdown';
+
+const previewComponents: Components = {
+  a: ({ href, children, ...props }) => {
+    const isExternal = href?.startsWith('http://') || href?.startsWith('https://') || href?.startsWith('//');
+    return (
+      <a href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined} {...props}>
+        {children}
+      </a>
+    );
+  },
+};
 
 const categories = [
   { value: 'all', label: 'All Categories' },
@@ -323,7 +335,7 @@ print('Hello World')
                   <TabsContent value="preview" className="mt-0">
                     <div className="border rounded-md p-4 min-h-[350px] max-h-[450px] overflow-y-auto bg-white prose prose-sm max-w-none">
                       {formData.content ? (
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={previewComponents}>
                           {formData.content}
                         </ReactMarkdown>
                       ) : (

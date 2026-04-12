@@ -29,6 +29,8 @@ export function NewsGrid({ news }: { news: News[] }) {
                 <img
                   src={item.cover_image}
                   alt={item.title}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               ) : (

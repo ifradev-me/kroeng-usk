@@ -19,6 +19,7 @@ import {
   Calendar,
   Phone,
   Link as LinkIcon,
+  Plus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,6 +59,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { supabase, Member, Division } from '@/lib/supabase';
 import { toast } from 'sonner';
 
@@ -112,6 +114,18 @@ export default function AdminMembersPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState(false);
+
+  // Add member by email dialog
+  const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
+  const [addMemberForm, setAddMemberForm] = useState({
+    name: '',
+    email: '',
+    division_id: '',
+    position: '',
+    year: '',
+    is_core_team: false,
+  });
+  const [addingMember, setAddingMember] = useState(false);
 
   // Fetch data
   useEffect(() => {
@@ -240,6 +254,55 @@ export default function AdminMembersPage() {
     }
   }
 
+  // Add member directly by email
+  async function handleAddMember() {
+    if (!addMemberForm.name.trim()) {
+      toast.error('Nama tidak boleh kosong');
+      return;
+    }
+    if (!addMemberForm.email.trim()) {
+      toast.error('Email tidak boleh kosong');
+      return;
+    }
+    if (!addMemberForm.position.trim()) {
+      toast.error('Posisi tidak boleh kosong');
+      return;
+    }
+
+    setAddingMember(true);
+    try {
+      const { error } = await supabase.from('members').insert({
+        name: addMemberForm.name.trim(),
+        email: addMemberForm.email.trim().toLowerCase(),
+        division_id: addMemberForm.division_id || null,
+        position: addMemberForm.position.trim(),
+        year: addMemberForm.year.trim() || null,
+        is_core_team: addMemberForm.is_core_team,
+        order_index: members.length + 1,
+        social_links: {},
+      });
+
+      if (error) throw error;
+
+      toast.success(`${addMemberForm.name} berhasil ditambahkan sebagai member`);
+      setAddMemberDialogOpen(false);
+      setAddMemberForm({
+        name: '',
+        email: '',
+        division_id: '',
+        position: '',
+        year: '',
+        is_core_team: false,
+      });
+      fetchData();
+      setActiveTab('members');
+    } catch (error: any) {
+      toast.error(error.message || 'Gagal menambahkan member');
+    } finally {
+      setAddingMember(false);
+    }
+  }
+
   // Filter applications
   const filteredApplications = applications.filter((app) => {
     const matchesSearch =
@@ -312,6 +375,13 @@ export default function AdminMembersPage() {
           <h1 className="text-2xl md:text-3xl font-heading font-bold text-gray-900">Members</h1>
           <p className="text-gray-600 mt-1">atur penerimaan member baru dan aplikan</p>
         </div>
+        <Button
+          onClick={() => setAddMemberDialogOpen(true)}
+          className="bg-electric-500 hover:bg-electric-600 gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Tambah Member
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -824,6 +894,135 @@ export default function AdminMembersPage() {
             </Button>
             <Button variant="destructive" onClick={handleReject} disabled={processing}>
               {processing ? 'Processing...' : 'Reject Application'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Member by Email Dialog */}
+      <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Tambah Member Langsung</DialogTitle>
+            <DialogDescription>
+              Daftarkan member dengan email mereka. Mereka tidak perlu akses website terlebih dahulu.
+              Kalau nanti mereka daftar dengan email yang sama, akun mereka akan otomatis terhubung.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Name */}
+            <div className="space-y-1.5">
+              <Label htmlFor="add-name">
+                Nama Lengkap <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="add-name"
+                value={addMemberForm.name}
+                onChange={(e) =>
+                  setAddMemberForm((prev) => ({ ...prev, name: e.target.value }))
+                }
+                placeholder="cth: Budi Santoso"
+              />
+            </div>
+
+            {/* Email */}
+            <div className="space-y-1.5">
+              <Label htmlFor="add-email">
+                Email <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="add-email"
+                type="email"
+                value={addMemberForm.email}
+                onChange={(e) =>
+                  setAddMemberForm((prev) => ({ ...prev, email: e.target.value }))
+                }
+                placeholder="cth: budi@email.com"
+              />
+            </div>
+
+            {/* Division */}
+            <div className="space-y-1.5">
+              <Label htmlFor="add-division">Divisi</Label>
+              <Select
+                value={addMemberForm.division_id || 'none'}
+                onValueChange={(val) =>
+                  setAddMemberForm((prev) => ({ ...prev, division_id: val === 'none' ? '' : val }))
+                }
+              >
+                <SelectTrigger id="add-division">
+                  <SelectValue placeholder="Pilih divisi..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Tidak ada divisi —</SelectItem>
+                  {divisions.map((division) => (
+                    <SelectItem key={division.id} value={division.id}>
+                      {division.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Position */}
+            <div className="space-y-1.5">
+              <Label htmlFor="add-position">
+                Posisi/Jabatan <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="add-position"
+                value={addMemberForm.position}
+                onChange={(e) =>
+                  setAddMemberForm((prev) => ({ ...prev, position: e.target.value }))
+                }
+                placeholder="cth: Anggota, Ketua Divisi, Wakil..."
+              />
+            </div>
+
+            {/* Year */}
+            <div className="space-y-1.5">
+              <Label htmlFor="add-year">Angkatan</Label>
+              <Input
+                id="add-year"
+                value={addMemberForm.year}
+                onChange={(e) =>
+                  setAddMemberForm((prev) => ({ ...prev, year: e.target.value }))
+                }
+                placeholder="cth: 2023"
+              />
+            </div>
+
+            {/* Core Team */}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="add-core-team"
+                checked={addMemberForm.is_core_team}
+                onCheckedChange={(checked) =>
+                  setAddMemberForm((prev) => ({ ...prev, is_core_team: !!checked }))
+                }
+              />
+              <Label htmlFor="add-core-team" className="cursor-pointer">
+                Core Team (pengurus inti)
+              </Label>
+            </div>
+
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setAddMemberDialogOpen(false)}
+              disabled={addingMember}
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={handleAddMember}
+              disabled={addingMember}
+              className="bg-electric-500 hover:bg-electric-600"
+            >
+              {addingMember ? 'Menambahkan...' : 'Tambah Member'}
             </Button>
           </DialogFooter>
         </DialogContent>

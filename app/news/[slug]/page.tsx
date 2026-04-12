@@ -110,6 +110,9 @@ export default async function NewsDetailPage({ params }: PageProps) {
                 <img
                   src={news.cover_image}
                   alt={`Ilustrasi artikel: ${news.title}`}
+                  loading="eager"
+                  decoding="async"
+                  fetchPriority="high"
                   className="w-full h-full object-cover"
                 />
               </div>

@@ -16,6 +16,67 @@ interface ImageUploadProps {
   maxSizeMB?: number;
 }
 
+// Max dimension for output images (px), prevents storing huge files
+const MAX_DIMENSION = 1920;
+// WebP quality 0–1; 0.82 gives ~70-80% smaller than PNG with barely visible loss
+const WEBP_QUALITY = 0.82;
+
+async function convertToWebP(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      let { width, height } = img;
+
+      // Scale down proportionally if either dimension exceeds MAX_DIMENSION
+      if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+        if (width >= height) {
+          height = Math.round((height * MAX_DIMENSION) / width);
+          width = MAX_DIMENSION;
+        } else {
+          width = Math.round((width * MAX_DIMENSION) / height);
+          height = MAX_DIMENSION;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Canvas context tidak tersedia'));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('Konversi gambar gagal'));
+            return;
+          }
+          const baseName = file.name.replace(/\.[^/.]+$/, '');
+          resolve(new File([blob], `${baseName}.webp`, { type: 'image/webp' }));
+        },
+        'image/webp',
+        WEBP_QUALITY
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Gagal memuat gambar'));
+    };
+
+    img.src = objectUrl;
+  });
+}
+
 export function ImageUpload({
   value,
   onChange,
@@ -37,29 +98,32 @@ export function ImageUpload({
   const uploadImage = async (file: File) => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+      toast.error('Harap upload file gambar');
       return;
     }
 
-    // Validate file size
+    // Validate original file size before conversion
     if (file.size > maxSizeMB * 1024 * 1024) {
-      toast.error(`File size must be less than ${maxSizeMB}MB`);
+      toast.error(`Ukuran file harus kurang dari ${maxSizeMB}MB`);
       return;
     }
 
     setUploading(true);
 
     try {
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      // Convert & compress to WebP before uploading
+      const webpFile = await convertToWebP(file);
+
+      // Generate unique filename with .webp extension
+      const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
 
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from(bucket)
-        .upload(fileName, file, {
-          cacheControl: '3600',
+        .upload(fileName, webpFile, {
+          cacheControl: '31536000', // 1 year – WebP files are content-addressed
           upsert: false,
+          contentType: 'image/webp',
         });
 
       if (error) throw error;
@@ -70,10 +134,10 @@ export function ImageUpload({
         .getPublicUrl(data.path);
 
       onChange(urlData.publicUrl);
-      toast.success('Image uploaded successfully');
+      toast.success('Gambar berhasil diupload');
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload image');
+      toast.error(error.message || 'Gagal mengupload gambar');
     } finally {
       setUploading(false);
     }
@@ -188,7 +252,10 @@ export function ImageUpload({
                   Click to upload or drag and drop
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
-                  PNG, JPG, GIF up to {maxSizeMB}MB
+                  PNG, JPG, GIF, WebP hingga {maxSizeMB}MB
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Otomatis dikonversi &amp; dikompres ke WebP
                 </p>
               </>
             )}

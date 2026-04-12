@@ -23,6 +23,18 @@ import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import type { Components } from 'react-markdown';
+
+const previewComponents: Components = {
+  a: ({ href, children, ...props }) => {
+    const isExternal = href?.startsWith('http://') || href?.startsWith('https://') || href?.startsWith('//');
+    return (
+      <a href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined} {...props}>
+        {children}
+      </a>
+    );
+  },
+};
 
 export default function AdminNewsPage() {
   const { user } = useAuth();
@@ -260,7 +272,7 @@ export default function AdminNewsPage() {
                   <TabsContent value="preview" className="mt-0">
                     <div className="border rounded-md p-4 min-h-[300px] max-h-[400px] overflow-y-auto bg-white prose prose-sm max-w-none">
                       {formData.content ? (
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={previewComponents}>
                           {formData.content}
                         </ReactMarkdown>
                       ) : (
