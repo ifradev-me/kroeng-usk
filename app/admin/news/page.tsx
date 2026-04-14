@@ -111,7 +111,7 @@ export default function AdminNewsPage() {
       handleCloseDialog(false);
       fetchNews();
     } catch (error: any) {
-      toast.error(error.message || 'An error occurred');
+      toast.error('Gagal menyimpan berita. Silakan coba lagi.');
     }
   };
 

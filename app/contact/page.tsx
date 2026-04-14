@@ -56,9 +56,17 @@ const socialLinks = [
   { icon: Github, label: 'GitHub', href: 'https://github.com/kroeng-usk' },
 ];
 
+const MAX_NAME_LENGTH = 100;
+const MAX_EMAIL_LENGTH = 254;
+const MAX_SUBJECT_LENGTH = 200;
+const MAX_MESSAGE_LENGTH = 5000;
+const SUBMIT_COOLDOWN_MS = 30_000; // 30 seconds between submissions
+
 export default function ContactPage() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState(0);
+  const [honeypot, setHoneypot] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -69,22 +77,52 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Honeypot check — bots fill hidden fields
+    if (honeypot) return;
+
+    // Rate limiting
+    const now = Date.now();
+    if (now - lastSubmitTime < SUBMIT_COOLDOWN_MS) {
+      toast.error('Mohon tunggu sebentar sebelum mengirim pesan lagi.');
+      return;
+    }
+
+    // Input length validation
+    if (formData.name.length > MAX_NAME_LENGTH) {
+      toast.error(`Nama maksimal ${MAX_NAME_LENGTH} karakter.`);
+      return;
+    }
+    if (formData.email.length > MAX_EMAIL_LENGTH) {
+      toast.error(`Email maksimal ${MAX_EMAIL_LENGTH} karakter.`);
+      return;
+    }
+    if (formData.subject.length > MAX_SUBJECT_LENGTH) {
+      toast.error(`Judul maksimal ${MAX_SUBJECT_LENGTH} karakter.`);
+      return;
+    }
+    if (formData.message.length > MAX_MESSAGE_LENGTH) {
+      toast.error(`Pesan maksimal ${MAX_MESSAGE_LENGTH} karakter.`);
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { error } = await supabase.from('contacts').insert({
-        name: formData.name,
-        email: formData.email,
-        subject: formData.subject,
-        message: formData.message,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject.trim(),
+        message: formData.message.trim(),
         collaboration_type: formData.collaboration_type || null,
       });
 
       if (error) throw error;
 
+      setLastSubmitTime(Date.now());
       setSubmitted(true);
       toast.success('Pesan berhasil dikirim!');
-    } catch (error) {
+    } catch {
       toast.error('Gagal mengirim pesan. Silakan coba lagi.');
     } finally {
       setLoading(false);
@@ -149,6 +187,18 @@ export default function ContactPage() {
             <Card className="shadow-xl border-0">
               <CardContent className="p-8">
                 <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Honeypot field — hidden from real users, bots fill it */}
+                  <div className="absolute opacity-0 -z-10" aria-hidden="true">
+                    <input
+                      type="text"
+                      name="website"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={honeypot}
+                      onChange={(e) => setHoneypot(e.target.value)}
+                    />
+                  </div>
+
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="name">Nama *</Label>
@@ -158,6 +208,7 @@ export default function ContactPage() {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
+                        maxLength={MAX_NAME_LENGTH}
                       />
                     </div>
                     <div className="space-y-2">
@@ -169,6 +220,7 @@ export default function ContactPage() {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         required
+                        maxLength={MAX_EMAIL_LENGTH}
                       />
                     </div>
                   </div>
@@ -181,6 +233,7 @@ export default function ContactPage() {
                         placeholder="Judul pesan"
                         value={formData.subject}
                         onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                        maxLength={MAX_SUBJECT_LENGTH}
                       />
                     </div>
                     <div className="space-y-2">
@@ -214,6 +267,7 @@ export default function ContactPage() {
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       required
+                      maxLength={MAX_MESSAGE_LENGTH}
                     />
                   </div>
 

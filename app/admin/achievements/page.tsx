@@ -115,7 +115,7 @@ export default function AdminAchievementsPage() {
       handleCloseDialog(false);
       fetchAchievements();
     } catch (error: any) {
-      toast.error(error.message || 'An error occurred');
+      toast.error('Gagal menyimpan achievement. Silakan coba lagi.');
     }
   };
 

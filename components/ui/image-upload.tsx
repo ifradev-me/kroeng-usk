@@ -263,14 +263,21 @@ export function ImageUpload({
         </div>
       )}
 
-      {/* Optional: Manual URL input */}
+      {/* Optional: Manual URL input — only https URLs allowed */}
       <div className="flex items-center gap-2">
         <span className="text-xs text-gray-400">or</span>
         <Input
           type="url"
-          placeholder="Paste image URL"
+          placeholder="Paste image URL (https://...)"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            const url = e.target.value;
+            if (!url || url.startsWith('https://')) {
+              onChange(url);
+            } else {
+              toast.error('Hanya URL dengan https:// yang diizinkan');
+            }
+          }}
           className="text-sm h-8"
         />
       </div>

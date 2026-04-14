@@ -1,6 +1,6 @@
-import './globals.css';
+import "./globals.css";
 import type { Metadata } from 'next';
-import { Inter, Plus_Jakarta_Sans, Space_Grotesk } from 'next/font/google';
+import { Inter, Montserrat, Orbitron } from 'next/font/google';
 import Script from 'next/script';
 import { AuthProvider } from '@/lib/auth-context';
 import { Navbar } from '@/components/layout/navbar';
@@ -15,16 +15,18 @@ const inter = Inter({
   display: 'swap',
 });
 
-const plusJakarta = Plus_Jakarta_Sans({
+const montserrat = Montserrat({
   subsets: ['latin'],
   variable: '--font-heading',
   display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
 });
 
-const spaceGrotesk = Space_Grotesk({
+const orbitron = Orbitron({
   subsets: ['latin'],
   variable: '--font-display',
   display: 'swap',
+  weight: ['400', '500', '600', '700', '800', '900'],
 });
 
 // ─── Site Config ──────────────────────────────────────────────────────────────
@@ -224,7 +226,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="id"
-      className={`${inter.variable} ${plusJakarta.variable} ${spaceGrotesk.variable}`}
+      className={`${inter.variable} ${montserrat.variable} ${orbitron.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -245,18 +247,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="geo.region" content="ID-AC" />
         <meta name="geo.placename" content={siteConfig.address.city} />
 
-        {/* JSON-LD */}
+        {/* JSON-LD — sanitize to prevent XSS via </script> in string values */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd).replace(/</g, '\\u003c') }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd).replace(/</g, '\\u003c') }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(educationalOrgJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(educationalOrgJsonLd).replace(/</g, '\\u003c') }}
         />
       </head>
       <body className="min-h-screen flex flex-col font-sans antialiased">

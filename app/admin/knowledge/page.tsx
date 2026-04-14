@@ -134,7 +134,7 @@ export default function AdminKnowledgePage() {
       handleCloseDialog(false);
       fetchKnowledge();
     } catch (error: any) {
-      toast.error(error.message || 'An error occurred');
+      toast.error('Gagal menyimpan artikel. Silakan coba lagi.');
     }
   };
 
