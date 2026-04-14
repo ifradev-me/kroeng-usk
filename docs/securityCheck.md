@@ -224,11 +224,18 @@ grep "matcher" middleware.ts
 3. Harus langsung redirect ke halaman profile/login
 4. Tidak boleh ada "flash" tampilan admin sebelum redirect
 
-### Verifikasi email confirmation (Supabase Dashboard)
+### Verifikasi email confirmation
 
+**Self-hosted / Docker — via Supabase Studio:**
+1. Buka `http://localhost:3001` (atau `http://<IP_PI>:3001`)
+2. Navigasi ke **Authentication** → **Providers** → **Email**
+3. Pastikan **"Confirm email"** dalam keadaan **ON**
+
+**Supabase Cloud:**
 1. Buka Supabase Dashboard → project → **Authentication** → **Providers** → **Email**
 2. Pastikan **"Confirm email"** dalam keadaan **ON**
-3. Jika OFF, user bisa daftar dan langsung login tanpa verifikasi email
+
+> Jika OFF, user bisa daftar dan langsung login tanpa verifikasi email.
 
 ---
 
@@ -320,7 +327,7 @@ curl -s -X POST http://localhost:3000/api/webhook \
 ### Bulanan
 
 - [ ] `npm audit` — tidak ada high/critical vulnerability
-- [ ] Cek Supabase Dashboard → **Auth** → lihat login attempts yang mencurigakan
+- [ ] Cek login attempts mencurigakan — via Studio (`http://localhost:3001` → **Authentication → Users**) jika self-hosted, atau Supabase Dashboard jika cloud
 - [ ] Verifikasi RLS privilege escalation (test C1 di atas)
 - [ ] Review Supabase Storage → hapus file yang tidak terpakai
 

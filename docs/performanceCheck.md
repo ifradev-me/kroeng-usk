@@ -192,7 +192,12 @@ Di Lighthouse, bagian **"Eliminate render-blocking resources"** menampilkan CSS/
 
 ### Cek query lambat di Supabase
 
-**Via Supabase Dashboard:**
+**Via Supabase Studio (self-hosted / Docker):**
+1. Buka `http://localhost:3001` (atau `http://<IP_PI>:3001`)
+2. Buka **SQL Editor**
+3. Jalankan query di bawah
+
+**Via Supabase Cloud Dashboard:**
 1. Buka project → **Database** → **Query Performance**
 2. Lihat query dengan execution time tinggi
 
@@ -256,8 +261,17 @@ npm run typecheck
 # Cek lint
 npm run lint
 
-# Test produksi lokal
+# Test produksi lokal (tanpa Docker)
 npm start
+```
+
+**Jika deploy via Docker**, gunakan perintah ini sebagai gantinya:
+```bash
+# Build dan jalankan seluruh stack
+docker compose --env-file .env.docker up -d --build
+
+# Cek log app untuk error
+docker compose --env-file .env.docker logs -f app
 ```
 
 ### Performance checklist
