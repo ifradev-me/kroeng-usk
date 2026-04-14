@@ -265,7 +265,8 @@ export default function ProfilePage() {
 
       if (data) setMemberApplication(data);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to submit application');
+      console.error('Application submit error:', error);
+      toast.error('Gagal mengirim aplikasi. Silakan coba lagi.');
     } finally {
       setApplyingMembership(false);
     }
@@ -362,7 +363,7 @@ export default function ProfilePage() {
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       required
-                      minLength={6}
+                      minLength={8}
                     />
                   </div>
 

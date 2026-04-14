@@ -98,7 +98,7 @@ export default function AdminGalleryPage() {
       setFormData({ title: '', description: '', image_url: '', category: 'general' });
       fetchGallery();
     } catch (error: any) {
-      toast.error(error.message || 'An error occurred');
+      toast.error('Gagal menyimpan item galeri. Silakan coba lagi.');
     }
   };
 
