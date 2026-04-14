@@ -1,0 +1,291 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# KROENG USK – Full Self-Hosted Stack
+# Supabase (Postgres + Auth + REST + Realtime + Storage) + Next.js App
+#
+# FIRST-TIME SETUP:
+#   1. cp .env.docker.example .env.docker
+#   2. Edit .env.docker — fill in passwords, generate JWT keys (see file)
+#   3. docker compose --env-file .env.docker up -d
+#   4. Migrations run automatically via the db-migrate service
+#
+# Target platform: Raspberry Pi 4/5 (linux/arm64)
+# ─────────────────────────────────────────────────────────────────────────────
+
+volumes:
+  db-data:
+  storage-data:
+
+networks:
+  supabase-net:
+    driver: bridge
+
+services:
+
+  # ─── PostgreSQL (Supabase-flavoured) ────────────────────────────────────────
+  db:
+    image: supabase/postgres:15.1.0.147
+    platform: linux/arm64
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - supabase-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+
+  # ─── Migration runner (one-shot, idempotent) ─────────────────────────────────
+  db-migrate:
+    image: supabase/postgres:15.1.0.147
+    platform: linux/arm64
+    restart: on-failure:5
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./supabase/migrations:/migrations:ro
+      - ./supabase/docker/migrate.sh:/migrate.sh:ro
+    entrypoint: ["sh", "/migrate.sh"]
+    networks:
+      - supabase-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ─── Kong API Gateway ────────────────────────────────────────────────────────
+  kong:
+    image: kong:2.8.1
+    platform: linux/arm64
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "8443:8443"
+    # Uses bash eval to substitute env vars into kong.yml at runtime
+    entrypoint: >
+      bash -c '
+        eval "echo \"$$(cat /home/kong/temp.yml)\"" > /home/kong/kong.yml &&
+        /docker-entrypoint.sh kong docker-start
+      '
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: "64 160k"
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+    volumes:
+      - ./supabase/docker/kong.yml:/home/kong/temp.yml:ro
+    networks:
+      - supabase-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ─── Auth / GoTrue ────────────────────────────────────────────────────────────
+  auth:
+    image: supabase/gotrue:v2.157.2
+    platform: linux/arm64
+    restart: unless-stopped
+    environment:
+      GOTRUE_API_HOST: "0.0.0.0"
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-http://localhost:8000}
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      GOTRUE_URI_ALLOW_LIST: ""
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+      GOTRUE_MAILER_AUTOCONFIRM: "false"
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL:-noreply@example.com}
+      GOTRUE_SMTP_HOST: ${SMTP_HOST:-}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT:-587}
+      GOTRUE_SMTP_USER: ${SMTP_USER:-}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS:-}
+      GOTRUE_SMTP_SENDER_NAME: KROENG USK
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+    networks:
+      - supabase-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ─── PostgREST ────────────────────────────────────────────────────────────────
+  rest:
+    image: postgrest/postgrest:v12.2.0
+    platform: linux/arm64
+    restart: unless-stopped
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_EXP: 3600
+    networks:
+      - supabase-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ─── Realtime ─────────────────────────────────────────────────────────────────
+  realtime:
+    image: supabase/realtime:v2.30.23
+    platform: linux/arm64
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: postgres
+      DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
+      DB_ENC_KEY: supabaserealtime
+      API_JWT_SECRET: ${JWT_SECRET}
+      SECURE_CHANNELS: "true"
+      REPLICATION_MODE: RLS
+      REPLICATION_POLL_INTERVAL: 100
+      SUBSCRIPTION_SYNC_INTERVAL: 60000
+      SECRET_KEY_BASE: ${JWT_SECRET}
+      ERL_AFLAGS: -proto_dist inet_tcp
+      DNS_NODES: "''"
+    command: >
+      sh -c "/app/bin/migrate &&
+             /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' &&
+             /app/bin/server"
+    networks:
+      - supabase-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ─── Storage API ──────────────────────────────────────────────────────────────
+  storage:
+    image: supabase/storage-api:v1.11.13
+    platform: linux/arm64
+    restart: unless-stopped
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: local
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: "true"
+      IMGPROXY_URL: http://imgproxy:5001
+    volumes:
+      - storage-data:/var/lib/storage
+    networks:
+      - supabase-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ─── Image Proxy (untuk transformasi gambar Storage) ──────────────────────────
+  imgproxy:
+    image: darthsim/imgproxy:v3.8.0
+    platform: linux/arm64
+    restart: unless-stopped
+    environment:
+      IMGPROXY_BIND: ":5001"
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
+      IMGPROXY_USE_ETAG: "true"
+      IMGPROXY_ENABLE_WEBP_DETECTION: "true"
+    volumes:
+      - storage-data:/var/lib/storage:ro
+    networks:
+      - supabase-net
+
+  # ─── Postgres Meta (untuk Studio) ────────────────────────────────────────────
+  meta:
+    image: supabase/postgres-meta:v0.83.2
+    platform: linux/arm64
+    restart: unless-stopped
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: supabase_admin
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - supabase-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ─── Supabase Studio (Admin UI) — opsional, bisa dimatikan di production ───
+  studio:
+    image: supabase/studio:2024-12-18-latest
+    platform: linux/arm64
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DEFAULT_ORGANIZATION_NAME: KROENG USK
+      DEFAULT_PROJECT_NAME: kroeng-usk
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${API_EXTERNAL_URL:-http://localhost:8000}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      AUTH_JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - supabase-net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ─── Next.js App ──────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # NEXT_PUBLIC_* baked into JS bundle — harus URL yang bisa diakses browser
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${ANON_KEY}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+    platform: linux/arm64
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
+    networks:
+      - supabase-net
+    depends_on:
+      db:
+        condition: service_healthy
+      kong:
+        condition: service_started
+      db-migrate:
+        condition: service_completed_successfully
