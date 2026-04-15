@@ -47,6 +47,7 @@ export type Member = {
   is_core_team: boolean;
   order_index: number;
   year: string | null;
+  skills: string[];
   created_at: string;
   // Joined relations
   division?: Division;

@@ -139,8 +139,31 @@ export default function AdminDashboard() {
   const [recentContacts, setRecentContacts] = useState<RecentContact[]>([]);
   const [recentAchievements, setRecentAchievements] = useState<RecentAchievement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = '/profile?redirect=/admin';
+        return;
+      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (!profile || profile.role !== 'admin') {
+        window.location.href = '/profile';
+        return;
+      }
+      setAuthChecked(true);
+    }
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!authChecked) return;
     async function fetchDashboardData() {
       try {
         // Fetch all stats in parallel
@@ -201,7 +224,7 @@ export default function AdminDashboard() {
     }
 
     fetchDashboardData();
-  }, []);
+  }, [authChecked]);
 
   const formatDate = (dateString: string) => {
     try {
@@ -242,6 +265,14 @@ export default function AdminDashboard() {
         return 'bg-gray-100 text-gray-700';
     }
   };
+
+  if (!authChecked) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-8 h-8 border-4 border-electric-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

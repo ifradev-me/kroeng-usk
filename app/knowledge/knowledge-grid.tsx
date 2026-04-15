@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, ArrowRight, Calendar, Tag } from 'lucide-react';
+import { BookOpen, ArrowRight, Calendar, Tag, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -71,9 +71,29 @@ export function KnowledgeGrid({ knowledge }: { knowledge: Knowledge[] }) {
                 </div>
               </div>
               <CardContent className="p-6">
-                <div className="flex items-center gap-2 text-sm text-gray-500 mb-3">
-                  <Calendar className="w-4 h-4" />
-                  {format(new Date(item.created_at), 'dd MMM yyyy')}
+                <div className="flex items-center justify-between gap-2 text-sm text-gray-500 mb-3">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 shrink-0" />
+                    {format(new Date(item.created_at), 'dd MMM yyyy')}
+                  </span>
+                  {(item.author as any) && (
+                    <span className="flex items-center gap-1.5 min-w-0">
+                      {(item.author as any).avatar_url ? (
+                        <img
+                          src={(item.author as any).avatar_url}
+                          alt={(item.author as any).full_name || ''}
+                          className="w-5 h-5 rounded-full object-cover shrink-0"
+                        />
+                      ) : (
+                        <span className="w-5 h-5 rounded-full bg-electric-100 flex items-center justify-center shrink-0">
+                          <User className="w-3 h-3 text-electric-600" />
+                        </span>
+                      )}
+                      <span className="truncate text-xs">
+                        {(item.author as any).full_name || 'KROENG Team'}
+                      </span>
+                    </span>
+                  )}
                 </div>
                 <h3 className="text-lg font-heading font-semibold text-navy-900 mb-2 group-hover:text-electric-600 transition-colors line-clamp-2">
                   {item.title}

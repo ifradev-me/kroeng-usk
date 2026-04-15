@@ -19,7 +19,7 @@ async function getDivisions(): Promise<Division[]> {
 async function getAllMembers(): Promise<Member[]> {
   const { data, error } = await supabase
     .from('members')
-    .select('*, division:divisions(*)')
+    .select('*, division:divisions(*), profile:profiles(full_name, avatar_url)')
     .order('order_index', { ascending: true });
 
   if (error) {
