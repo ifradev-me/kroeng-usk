@@ -129,7 +129,17 @@ export default async function NewsDetailPage({ params }: PageProps) {
                   : format(new Date(news.created_at), 'dd MMMM yyyy')}
               </time>
               <span className="flex items-center gap-2">
-                <User className="w-4 h-4" />
+                {(news.author as any)?.avatar_url ? (
+                  <img
+                    src={(news.author as any).avatar_url}
+                    alt={authorName}
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="w-6 h-6 rounded-full bg-electric-100 flex items-center justify-center shrink-0">
+                    <User className="w-3.5 h-3.5 text-electric-600" />
+                  </span>
+                )}
                 {authorName}
               </span>
             </div>

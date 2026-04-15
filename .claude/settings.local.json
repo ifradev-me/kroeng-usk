@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
-      "Bash(grep -i \"policy\\\\|rls\\\\|enable\\\\|public\\\\|authenticated\" \"/d/coding/project_random/kroeng usk/supabase/migrations\"/*.sql)"
+      "Bash(grep -i \"policy\\\\|rls\\\\|enable\\\\|public\\\\|authenticated\" \"/d/coding/project_random/kroeng usk/supabase/migrations\"/*.sql)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
     ]
   }
 }

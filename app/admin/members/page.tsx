@@ -20,6 +20,7 @@ import {
   Phone,
   Link as LinkIcon,
   Plus,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -95,6 +96,7 @@ type MemberWithDivision = Member & {
     full_name: string | null;
     avatar_url: string | null;
     email: string | null;
+    role: 'guest' | 'user' | 'admin' | null;
   };
 };
 
@@ -114,6 +116,19 @@ export default function AdminMembersPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState(false);
+
+  // Edit member dialog
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<MemberWithDivision | null>(null);
+  const [editForm, setEditForm] = useState({
+    division_id: '',
+    position: '',
+    is_core_team: false,
+    is_admin: false,
+    skills: [] as string[],
+  });
+  const [skillInput, setSkillInput] = useState('');
+  const [saving, setSaving] = useState(false);
 
   // Add member by email dialog
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
@@ -143,16 +158,20 @@ export default function AdminMembersPage() {
       if (divisionsData) setDivisions(divisionsData);
 
       // Fetch applications
-      const { data: applicationsData } = await supabase
+      const { data: applicationsData, error: applicationsError } = await supabase
         .from('member_applications')
-        .select('*, division:divisions(*), profile:profiles(full_name, avatar_url)')
+        .select('*, division:divisions(*), profile:profiles!member_applications_profile_id_fkey(full_name, avatar_url)')
         .order('created_at', { ascending: false });
+      if (applicationsError) {
+        console.error('Error fetching applications:', applicationsError);
+        toast.error('Gagal memuat applications: ' + applicationsError.message);
+      }
       if (applicationsData) setApplications(applicationsData);
 
       // Fetch members
       const { data: membersData } = await supabase
         .from('members')
-        .select('*, division:divisions(*), profile:profiles(full_name, avatar_url, email)')
+        .select('*, division:divisions(*), profile:profiles(full_name, avatar_url, email, role)')
         .order('is_core_team', { ascending: false })
         .order('order_index');
       if (membersData) setMembers(membersData);
@@ -177,6 +196,7 @@ export default function AdminMembersPage() {
         year: application.year,
         is_core_team: false,
         order_index: 999,
+        skills: application.skills ?? [],
       });
 
       if (memberError) throw memberError;
@@ -251,6 +271,63 @@ export default function AdminMembersPage() {
       fetchData();
     } catch (error: any) {
       toast.error(error.message || 'Failed to remove member');
+    }
+  }
+
+  // Open edit dialog for a member
+  function openEditDialog(member: MemberWithDivision) {
+    setEditingMember(member);
+    setEditForm({
+      division_id: member.division_id || '',
+      position: member.position,
+      is_core_team: member.is_core_team,
+      is_admin: member.profile?.role === 'admin',
+      skills: member.skills ?? [],
+    });
+    setSkillInput('');
+    setEditDialogOpen(true);
+  }
+
+  // Save edited member
+  async function handleSaveEdit() {
+    if (!editingMember) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('members')
+        .update({
+          division_id: editForm.division_id || null,
+          position: editForm.position.trim(),
+          is_core_team: editForm.is_core_team,
+          skills: editForm.skills,
+        })
+        .eq('id', editingMember.id);
+
+      if (error) throw error;
+
+      // Sync position/division/role to profile if linked
+      if (editingMember.profile_id) {
+        const selectedDivision = divisions.find((d) => d.id === editForm.division_id);
+        const newRole = editForm.is_admin ? 'admin' : 'user';
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            position: editForm.position.trim(),
+            division: selectedDivision?.name || null,
+            role: newRole,
+          })
+          .eq('id', editingMember.profile_id);
+
+        if (profileError) throw profileError;
+      }
+
+      toast.success(`${editingMember.name} berhasil diperbarui`);
+      setEditDialogOpen(false);
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message || 'Gagal menyimpan perubahan');
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -659,13 +736,9 @@ export default function AdminMembersPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="w-4 h-4 mr-2" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Mail className="w-4 h-4 mr-2" />
-                                Send Email
+                              <DropdownMenuItem onClick={() => openEditDialog(member)}>
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Edit Divisi & Posisi
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
@@ -894,6 +967,203 @@ export default function AdminMembersPage() {
             </Button>
             <Button variant="destructive" onClick={handleReject} disabled={processing}>
               {processing ? 'Processing...' : 'Reject Application'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Member Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Member</DialogTitle>
+            <DialogDescription>
+              Ubah divisi dan posisi/jabatan untuk{' '}
+              <span className="font-semibold">{editingMember?.name}</span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Division */}
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-division">Divisi</Label>
+              <Select
+                value={editForm.division_id || 'none'}
+                onValueChange={(val) =>
+                  setEditForm((prev) => ({ ...prev, division_id: val === 'none' ? '' : val }))
+                }
+              >
+                <SelectTrigger id="edit-division">
+                  <SelectValue placeholder="Pilih divisi..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— Tidak ada divisi —</SelectItem>
+                  {divisions.map((division) => (
+                    <SelectItem key={division.id} value={division.id}>
+                      {division.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Position */}
+            <div className="space-y-1.5">
+              <Label htmlFor="edit-position">
+                Posisi / Jabatan <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={editForm.position}
+                onValueChange={(val) =>
+                  setEditForm((prev) => ({ ...prev, position: val }))
+                }
+              >
+                <SelectTrigger id="edit-position">
+                  <SelectValue placeholder="Pilih jabatan..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Ketua">Ketua</SelectItem>
+                  <SelectItem value="Wakil Ketua">Wakil Ketua</SelectItem>
+                  <SelectItem value="Sekretaris">Sekretaris</SelectItem>
+                  <SelectItem value="Bendahara">Bendahara</SelectItem>
+                  <SelectItem value="Ketua Divisi">Ketua Divisi</SelectItem>
+                  <SelectItem value="Wakil Ketua Divisi">Wakil Ketua Divisi</SelectItem>
+                  <SelectItem value="Anggota">Anggota</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                placeholder="Atau ketik jabatan custom..."
+                value={
+                  ['Ketua','Wakil Ketua','Sekretaris','Bendahara','Ketua Divisi','Wakil Ketua Divisi','Anggota'].includes(editForm.position)
+                    ? ''
+                    : editForm.position
+                }
+                onChange={(e) =>
+                  setEditForm((prev) => ({ ...prev, position: e.target.value }))
+                }
+                className="mt-1.5"
+              />
+            </div>
+
+            {/* Skills */}
+            <div className="space-y-1.5">
+              <Label>Skills</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Tambah skill, lalu Enter..."
+                  value={skillInput}
+                  onChange={(e) => setSkillInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const val = skillInput.trim();
+                      if (val && !editForm.skills.includes(val)) {
+                        setEditForm((prev) => ({ ...prev, skills: [...prev.skills, val] }));
+                      }
+                      setSkillInput('');
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const val = skillInput.trim();
+                    if (val && !editForm.skills.includes(val)) {
+                      setEditForm((prev) => ({ ...prev, skills: [...prev.skills, val] }));
+                    }
+                    setSkillInput('');
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              {editForm.skills.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {editForm.skills.map((skill, i) => (
+                    <Badge
+                      key={i}
+                      variant="secondary"
+                      className="gap-1 pr-1 bg-electric-50 text-electric-700"
+                    >
+                      {skill}
+                      <button
+                        type="button"
+                        className="ml-0.5 hover:text-red-500 transition-colors"
+                        onClick={() =>
+                          setEditForm((prev) => ({
+                            ...prev,
+                            skills: prev.skills.filter((_, idx) => idx !== i),
+                          }))
+                        }
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Core Team */}
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="edit-core-team"
+                checked={editForm.is_core_team}
+                onCheckedChange={(checked) =>
+                  setEditForm((prev) => ({ ...prev, is_core_team: !!checked }))
+                }
+              />
+              <Label htmlFor="edit-core-team" className="cursor-pointer">
+                Core Team (pengurus inti)
+              </Label>
+            </div>
+
+            {/* Admin role — only for members with a linked account */}
+            {editingMember?.profile_id ? (
+              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="edit-is-admin"
+                    checked={editForm.is_admin}
+                    onCheckedChange={(checked) =>
+                      setEditForm((prev) => ({ ...prev, is_admin: !!checked }))
+                    }
+                  />
+                  <Label htmlFor="edit-is-admin" className="cursor-pointer font-medium">
+                    Admin website
+                  </Label>
+                </div>
+                <p className="text-xs text-yellow-700 leading-snug">
+                  {editForm.is_admin
+                    ? 'Member ini akan punya akses penuh ke halaman admin.'
+                    : 'Centang untuk memberi akses admin ke akun ini.'}
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                <p className="text-xs text-gray-500">
+                  Role admin tidak bisa diubah — member ini belum punya akun yang terhubung.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              disabled={saving}
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              disabled={saving || !editForm.position.trim()}
+              className="bg-electric-500 hover:bg-electric-600"
+            >
+              {saving ? 'Menyimpan...' : 'Simpan'}
             </Button>
           </DialogFooter>
         </DialogContent>

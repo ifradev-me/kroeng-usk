@@ -34,6 +34,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth-context';
 import { supabase, Division } from '@/lib/supabase';
+import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -111,7 +112,7 @@ export default function ProfilePage() {
         .from('members')
         .select('*, division:divisions(*)')
         .eq('profile_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (memberData) {
         setMembershipStatus('approved');
@@ -135,7 +136,7 @@ export default function ProfilePage() {
         .eq('profile_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (applicationData) {
         setMembershipStatus(applicationData.status);
@@ -420,9 +421,18 @@ export default function ProfilePage() {
           <CardHeader className="pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-electric-500 to-navy-600 flex items-center justify-center text-white text-2xl font-bold">
-                  {profile?.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase()}
-                </div>
+                <AvatarUpload
+                  value={profile?.avatar_url ?? null}
+                  name={profile?.full_name || user.email || ''}
+                  size="w-16 h-16"
+                  onChange={async (url) => {
+                    await supabase
+                      .from('profiles')
+                      .update({ avatar_url: url, updated_at: new Date().toISOString() })
+                      .eq('id', user.id);
+                    await refreshProfile();
+                  }}
+                />
                 <div>
                   <CardTitle className="text-2xl font-heading">
                     {profile?.full_name || 'User'}

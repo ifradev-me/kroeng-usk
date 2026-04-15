@@ -2,6 +2,7 @@
 
 import { Instagram, Linkedin, Github, Mail, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Member } from '@/lib/supabase';
 
 const socialIcons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -32,9 +33,9 @@ export function MembersGrid({ members }: { members: Member[] }) {
           className="group bg-white border-0 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
         >
           <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-electric-500 to-navy-600">
-            {member.image_url ? (
+            {(member.image_url || member.profile?.avatar_url) ? (
               <img
-                src={member.image_url}
+                src={member.image_url || member.profile?.avatar_url!}
                 alt={member.name}
                 loading="lazy"
                 decoding="async"
@@ -54,6 +55,24 @@ export function MembersGrid({ members }: { members: Member[] }) {
             <p className="text-electric-600 text-sm font-medium">{member.position}</p>
             {member.division && (
               <p className="text-gray-500 text-xs mt-1">{member.division.name}</p>
+            )}
+            {member.skills && member.skills.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-1 mt-2">
+                {member.skills.slice(0, 3).map((skill, i) => (
+                  <Badge
+                    key={i}
+                    variant="secondary"
+                    className="text-xs px-2 py-0.5 bg-electric-50 text-electric-700 border-0"
+                  >
+                    {skill}
+                  </Badge>
+                ))}
+                {member.skills.length > 3 && (
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 border-0">
+                    +{member.skills.length - 3}
+                  </Badge>
+                )}
+              </div>
             )}
             {member.social_links && Object.keys(member.social_links).length > 0 && (
               <div className="flex justify-center gap-2 mt-3">
