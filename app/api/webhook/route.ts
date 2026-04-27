@@ -12,8 +12,8 @@ function verifySignature(payload: string, signature: string | null): boolean {
     .digest('hex');
 
   return crypto.timingSafeEqual(
-    Buffer.from(`sha256=${expected}`),
-    Buffer.from(signature)
+    new Uint8Array(Buffer.from(`sha256=${expected}`)),
+    new Uint8Array(Buffer.from(signature))
   );
 }
 
