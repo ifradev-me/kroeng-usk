@@ -12,12 +12,17 @@
 /.next/
 /out/
 
+# AI
+/.claude
+/.bolt
+
 # production
 /build
 
 # misc
 .DS_Store
 *.pem
+/contents
 
 # debug
 npm-debug.log*
