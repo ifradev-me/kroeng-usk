@@ -14,17 +14,13 @@ import {
   CheckCircle2,
   XCircle,
   Filter,
-  Mail,
   Building2,
-  Calendar,
-  Phone,
-  Link as LinkIcon,
   Plus,
   Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -62,6 +58,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase, Member, Division } from '@/lib/supabase';
+import { ImageUpload } from '@/components/ui/image-upload';
 import { toast } from 'sonner';
 
 type MemberApplication = {
@@ -135,11 +132,14 @@ export default function AdminMembersPage() {
   const [addMemberForm, setAddMemberForm] = useState({
     name: '',
     email: '',
+    image_url: '',
     division_id: '',
     position: '',
     year: '',
     is_core_team: false,
+    skills: [] as string[],
   });
+  const [addSkillInput, setAddSkillInput] = useState('');
   const [addingMember, setAddingMember] = useState(false);
 
   // Fetch data
@@ -351,10 +351,12 @@ export default function AdminMembersPage() {
       const { error } = await supabase.from('members').insert({
         name: addMemberForm.name.trim(),
         email: addMemberForm.email.trim().toLowerCase(),
+        image_url: addMemberForm.image_url || null,
         division_id: addMemberForm.division_id || null,
         position: addMemberForm.position.trim(),
         year: addMemberForm.year.trim() || null,
         is_core_team: addMemberForm.is_core_team,
+        skills: addMemberForm.skills,
         order_index: members.length + 1,
         social_links: {},
       });
@@ -366,11 +368,14 @@ export default function AdminMembersPage() {
       setAddMemberForm({
         name: '',
         email: '',
+        image_url: '',
         division_id: '',
         position: '',
         year: '',
         is_core_team: false,
+        skills: [],
       });
+      setAddSkillInput('');
       fetchData();
       setActiveTab('members');
     } catch (error: any) {
@@ -1170,17 +1175,33 @@ export default function AdminMembersPage() {
       </Dialog>
 
       {/* Add Member by Email Dialog */}
-      <Dialog open={addMemberDialogOpen} onOpenChange={setAddMemberDialogOpen}>
-        <DialogContent className="max-w-md">
+      <Dialog open={addMemberDialogOpen} onOpenChange={(open) => {
+        setAddMemberDialogOpen(open);
+        if (!open) {
+          setAddMemberForm({ name: '', email: '', image_url: '', division_id: '', position: '', year: '', is_core_team: false, skills: [] });
+          setAddSkillInput('');
+        }
+      }}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Tambah Member Langsung</DialogTitle>
             <DialogDescription>
-              Daftarkan member dengan email mereka. Mereka tidak perlu akses website terlebih dahulu.
-              Kalau nanti mereka daftar dengan email yang sama, akun mereka akan otomatis terhubung.
+              Daftarkan member dengan email mereka. Kalau nanti mereka daftar dengan email yang sama, akun mereka akan otomatis terhubung.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
+            {/* Avatar */}
+            <div className="space-y-1.5">
+              <Label>Foto Member</Label>
+              <ImageUpload
+                value={addMemberForm.image_url}
+                onChange={(url) => setAddMemberForm((prev) => ({ ...prev, image_url: url }))}
+                folder="members"
+                aspectRatio="square"
+              />
+            </div>
+
             {/* Name */}
             <div className="space-y-1.5">
               <Label htmlFor="add-name">
@@ -1189,9 +1210,7 @@ export default function AdminMembersPage() {
               <Input
                 id="add-name"
                 value={addMemberForm.name}
-                onChange={(e) =>
-                  setAddMemberForm((prev) => ({ ...prev, name: e.target.value }))
-                }
+                onChange={(e) => setAddMemberForm((prev) => ({ ...prev, name: e.target.value }))}
                 placeholder="cth: Budi Santoso"
               />
             </div>
@@ -1205,9 +1224,7 @@ export default function AdminMembersPage() {
                 id="add-email"
                 type="email"
                 value={addMemberForm.email}
-                onChange={(e) =>
-                  setAddMemberForm((prev) => ({ ...prev, email: e.target.value }))
-                }
+                onChange={(e) => setAddMemberForm((prev) => ({ ...prev, email: e.target.value }))}
                 placeholder="cth: budi@email.com"
               />
             </div>
@@ -1238,15 +1255,38 @@ export default function AdminMembersPage() {
             {/* Position */}
             <div className="space-y-1.5">
               <Label htmlFor="add-position">
-                Posisi/Jabatan <span className="text-red-500">*</span>
+                Posisi / Jabatan <span className="text-red-500">*</span>
               </Label>
-              <Input
-                id="add-position"
-                value={addMemberForm.position}
-                onChange={(e) =>
-                  setAddMemberForm((prev) => ({ ...prev, position: e.target.value }))
+              <Select
+                value={
+                  ['Ketua','Wakil Ketua','Sekretaris','Bendahara','Ketua Divisi','Wakil Ketua Divisi','Anggota'].includes(addMemberForm.position)
+                    ? addMemberForm.position
+                    : ''
                 }
-                placeholder="cth: Anggota, Ketua Divisi, Wakil..."
+                onValueChange={(val) => setAddMemberForm((prev) => ({ ...prev, position: val }))}
+              >
+                <SelectTrigger id="add-position">
+                  <SelectValue placeholder="Pilih jabatan..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Ketua">Ketua</SelectItem>
+                  <SelectItem value="Wakil Ketua">Wakil Ketua</SelectItem>
+                  <SelectItem value="Sekretaris">Sekretaris</SelectItem>
+                  <SelectItem value="Bendahara">Bendahara</SelectItem>
+                  <SelectItem value="Ketua Divisi">Ketua Divisi</SelectItem>
+                  <SelectItem value="Wakil Ketua Divisi">Wakil Ketua Divisi</SelectItem>
+                  <SelectItem value="Anggota">Anggota</SelectItem>
+                </SelectContent>
+              </Select>
+              <Input
+                placeholder="Atau ketik jabatan custom..."
+                value={
+                  ['Ketua','Wakil Ketua','Sekretaris','Bendahara','Ketua Divisi','Wakil Ketua Divisi','Anggota'].includes(addMemberForm.position)
+                    ? ''
+                    : addMemberForm.position
+                }
+                onChange={(e) => setAddMemberForm((prev) => ({ ...prev, position: e.target.value }))}
+                className="mt-1.5"
               />
             </div>
 
@@ -1256,11 +1296,70 @@ export default function AdminMembersPage() {
               <Input
                 id="add-year"
                 value={addMemberForm.year}
-                onChange={(e) =>
-                  setAddMemberForm((prev) => ({ ...prev, year: e.target.value }))
-                }
+                onChange={(e) => setAddMemberForm((prev) => ({ ...prev, year: e.target.value }))}
                 placeholder="cth: 2023"
               />
+            </div>
+
+            {/* Skills */}
+            <div className="space-y-1.5">
+              <Label>Skills</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Tambah skill, lalu Enter..."
+                  value={addSkillInput}
+                  onChange={(e) => setAddSkillInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const val = addSkillInput.trim();
+                      if (val && !addMemberForm.skills.includes(val)) {
+                        setAddMemberForm((prev) => ({ ...prev, skills: [...prev.skills, val] }));
+                      }
+                      setAddSkillInput('');
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const val = addSkillInput.trim();
+                    if (val && !addMemberForm.skills.includes(val)) {
+                      setAddMemberForm((prev) => ({ ...prev, skills: [...prev.skills, val] }));
+                    }
+                    setAddSkillInput('');
+                  }}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              {addMemberForm.skills.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {addMemberForm.skills.map((skill, i) => (
+                    <Badge
+                      key={i}
+                      variant="secondary"
+                      className="gap-1 pr-1 bg-electric-50 text-electric-700"
+                    >
+                      {skill}
+                      <button
+                        type="button"
+                        className="ml-0.5 hover:text-red-500 transition-colors"
+                        onClick={() =>
+                          setAddMemberForm((prev) => ({
+                            ...prev,
+                            skills: prev.skills.filter((_, idx) => idx !== i),
+                          }))
+                        }
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Core Team */}
@@ -1277,6 +1376,12 @@ export default function AdminMembersPage() {
               </Label>
             </div>
 
+            {/* Admin note */}
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+              <p className="text-xs text-gray-500">
+                Role admin tidak bisa diset sekarang — member ini belum punya akun. Setelah mereka daftar dengan email yang sama, ubah role-nya lewat Edit Member.
+              </p>
+            </div>
           </div>
 
           <DialogFooter>

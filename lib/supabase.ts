@@ -31,6 +31,7 @@ export type Division = {
   name: string;
   slug: string;
   description: string | null;
+  color: string | null;
   icon: string | null;
   order_index: number;
   created_at: string;
