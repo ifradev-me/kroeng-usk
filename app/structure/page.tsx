@@ -1,9 +1,21 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase, Member, Division } from '@/lib/supabase';
 import { MembersGrid } from './members-grid';
+
+export const metadata: Metadata = {
+  title: 'Struktur Organisasi',
+  description: 'Kenali core team dan divisi KROENG USK — komunitas robotika kompetitif Teknik Elektro USK yang mencetak engineer berprestasi di KRI, KRTI, dan kompetisi nasional.',
+  keywords: ['struktur organisasi', 'core team', 'divisi KROENG', 'anggota KROENG', 'tim robotika USK', 'Electrical Division', 'Programmer Division', 'Designer Division'],
+  openGraph: {
+    title: 'Struktur Organisasi | KROENG',
+    description: 'Kenali core team dan divisi-divisi KROENG USK — komunitas robotika kompetitif Teknik Elektro USK.',
+    type: 'website',
+  },
+};
 
 async function getCoreTeam(): Promise<Member[]> {
   const { data, error } = await supabase

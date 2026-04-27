@@ -8,11 +8,17 @@ import { generateBreadcrumbJsonLd, JsonLd } from '@/lib/seo';
 export const metadata: Metadata = {
   title: 'Prestasi & Penghargaan',
   description:
-    'Daftar prestasi dan penghargaan KROENG USK dalam kompetisi robotika nasional seperti KRI, KRTI, dan kompetisi teknologi lainnya.',
-  keywords: ['prestasi', 'penghargaan', 'juara', 'KRI', 'KRTI', 'kompetisi robot', 'trophy'],
+    'Daftar prestasi dan penghargaan KROENG USK — komunitas robot Aceh terbaik dari Universitas Syiah Kuala dalam kompetisi robotika nasional KRI, KRSBI, KRPAI, KRAI, KRTI, dan kompetisi teknologi internasional.',
+  keywords: [
+    'prestasi KROENG', 'penghargaan robotika', 'juara KRI', 'juara robot Indonesia',
+    'KRI', 'KRTI', 'KRSBI', 'KRPAI', 'KRAI', 'ABU Robocon',
+    'kompetisi robot', 'kontes robot Indonesia', 'lomba robot nasional',
+    'komunitas robot Aceh', 'komunitas robotika Banda Aceh', 'KROENG USK',
+    'prestasi teknik elektro USK', 'robot USK', 'robotika Aceh berprestasi',
+  ],
   openGraph: {
-    title: 'Prestasi & Penghargaan | KROENG',
-    description: 'Prestasi KROENG USK dalam kompetisi robotika nasional dan internasional.',
+    title: 'Prestasi & Penghargaan | KROENG — Komunitas Robot Aceh',
+    description: 'Rekam jejak prestasi KROENG USK, komunitas robot Aceh dari Universitas Syiah Kuala, dalam kompetisi robotika nasional dan internasional.',
   },
 };
 

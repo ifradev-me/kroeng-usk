@@ -25,10 +25,10 @@ const colorMap: Record<string, string> = {
 
 // Fallback data
 const fallbackDivisions: Division[] = [
-  { id: '1', name: 'Electrical Division', slug: 'electrical', description: 'Fokus pada rangkaian elektronik, sistem listrik, dan hardware robot.', icon: 'electrical', order_index: 1, created_at: '' },
-  { id: '2', name: 'Programmer Division', slug: 'programmer', description: 'Software development, embedded systems, AI, dan sistem robotika.', icon: 'programmer', order_index: 2, created_at: '' },
-  { id: '3', name: 'Designer Division', slug: 'designer', description: 'Desain produk, komponen mekanik, visual teknologi, dan 3D modeling.', icon: 'designer', order_index: 3, created_at: '' },
-  { id: '4', name: 'Non Technical Division', slug: 'non-technical', description: 'Manajemen komunitas, event organizing, dan urusan organisasi.', icon: 'non-technical', order_index: 4, created_at: '' },
+  { id: '1', name: 'Electrical Division', slug: 'electrical', description: 'Fokus pada rangkaian elektronik, sistem listrik, dan hardware robot.', icon: 'electrical', color: '#d97706', order_index: 1, created_at: '' },
+  { id: '2', name: 'Programmer Division', slug: 'programmer', description: 'Software development, embedded systems, AI, dan sistem robotika.', icon: 'programmer', color: '#0ea5e9', order_index: 2, created_at: '' },
+  { id: '3', name: 'Designer Division', slug: 'designer', description: 'Desain produk, komponen mekanik, visual teknologi, dan 3D modeling.', icon: 'designer', color: '#a21caf', order_index: 3, created_at: '' },
+  { id: '4', name: 'Non Technical Division', slug: 'non-technical', description: 'Manajemen komunitas, event organizing, dan urusan organisasi.', icon: 'non-technical', color: '#059669', order_index: 4, created_at: '' },
 ];
 
 async function getDivisions(): Promise<Division[]> {
