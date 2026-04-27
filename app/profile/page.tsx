@@ -397,9 +397,24 @@ export default function ProfilePage() {
     );
   }
 
+  const divisionColor =
+    membershipStatus === 'approved' && memberApplication?.division?.color
+      ? memberApplication.division.color
+      : null;
+
   // Logged in - show profile
   return (
-    <div className="section-padding">
+    <div
+      className="section-padding min-h-screen transition-colors duration-700"
+      style={
+        divisionColor
+          ? {
+              background: `radial-gradient(ellipse at 10% 10%, ${divisionColor}22 0%, transparent 45%),
+                           radial-gradient(ellipse at 90% 90%, ${divisionColor}14 0%, transparent 45%)`,
+            }
+          : undefined
+      }
+    >
       <div className="container-custom max-w-4xl space-y-6">
         {/* Admin Quick Access */}
         {isAdmin && (
@@ -449,7 +464,16 @@ export default function ProfilePage() {
                       {profile?.role || 'user'}
                     </Badge>
                     {membershipStatus === 'approved' && (
-                      <Badge className="bg-green-100 text-green-700">Member</Badge>
+                      <Badge
+                        style={
+                          divisionColor
+                            ? { backgroundColor: divisionColor + '20', color: divisionColor, borderColor: divisionColor + '40' }
+                            : undefined
+                        }
+                        className={divisionColor ? 'border' : 'bg-green-100 text-green-700'}
+                      >
+                        {memberApplication?.division?.name ?? 'Member'}
+                      </Badge>
                     )}
                     {membershipStatus === 'pending' && (
                       <Badge className="bg-yellow-100 text-yellow-700">Pending</Badge>
