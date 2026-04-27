@@ -35,16 +35,25 @@ const siteConfig = {
   name: 'KROENG',
   fullName: 'KROENG - Komunitas Robotic Electrical Engineering USK',
   description:
-    'Komunitas robotika mahasiswa Teknik Elektro USK yang mengembangkan engineer masa depan melalui kompetisi, kolaborasi, dan proyek teknologi nyata.',
+    'Forge Engineers. Win Competitions. Komunitas robotika kompetitif mahasiswa Teknik Elektro USK yang mencetak engineer berprestasi lewat KRI, KRTI, dan kompetisi robotika nasional.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://kroeng.com',
   ogImage: '/images/og-img.png',
   email: 'kroengusk@gmail.com',
   foundingYear: '2017',
   keywords: [
-    'KROENG', 'robotika', 'robot', 'engineering', 'teknik elektro',
+    // Brand
+    'KROENG', 'KROENG USK', 'komunitas robot Aceh', 'komunitas robotika Aceh',
+    'komunitas robot Banda Aceh', 'komunitas robotika Banda Aceh',
+    // Expertise
+    'robotika', 'robot', 'engineering', 'teknik elektro',
     'USK', 'Unsyiah', 'Universitas Syiah Kuala', 'komunitas',
     'IoT', 'Internet of Things', 'kompetisi robot', 'Kontes Robot Indonesia',
-    'KRI', 'mahasiswa', 'Aceh', 'embedded systems', 'Arduino', 'ESP32',
+    'KRI', 'KRSBI', 'KRPAI', 'KRAI', 'KRTI', 'mahasiswa', 'Aceh', 'Banda Aceh',
+    'embedded systems', 'Arduino', 'ESP32', '3D printing', 'otomasi industri',
+    // Web freelance
+    'jasa pembuatan website Aceh', 'jasa web developer Aceh',
+    'jasa pembuatan website Banda Aceh', 'web developer Aceh',
+    'freelance web developer Aceh', 'jasa coding Aceh',
   ],
   socials: {
     instagram: 'https://www.instagram.com/kroengusk/',
@@ -174,7 +183,12 @@ const organizationJsonLd = {
     postalCode: siteConfig.address.postalCode,
     addressCountry: siteConfig.address.country,
   },
-  knowsAbout: ['Robotics', 'Internet of Things', 'Embedded Systems', 'Arduino', 'ESP32', 'KRI'],
+  knowsAbout: [
+    'Robotics', 'Internet of Things', 'Embedded Systems', 'Arduino', 'ESP32',
+    'Kontes Robot Indonesia', 'KRI', 'KRSBI', 'KRPAI', 'KRAI', 'ABU Robocon',
+    '3D Printing', 'Industrial Automation', 'PLC', 'SCADA',
+    'Web Development', 'Web Application', 'Freelance Web Developer',
+  ],
 };
 
 // ─── JSON-LD: WebSite ─────────────────────────────────────────────────────────
@@ -273,13 +287,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </AuthProvider>
 
         {/* Cloudflare Web Analytics — hanya load jika token ada */}
-        {process.env.NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN && (
-          <Script
-            defer
-            src="https://static.cloudflareinsights.com/beacon.min.js"
-            data-cf-beacon={`{"token": "${process.env.NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN}"}`}
-            strategy="afterInteractive"
-          />
+        {process.env.NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN && (<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "344d60d8b9f243719f0d1ff06da4d1f5"}'></script>
         )}
       </body>
     </html>

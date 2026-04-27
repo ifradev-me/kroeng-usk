@@ -72,7 +72,7 @@ export function HeroSection() {
           <div className={`${baseTransition} ${visibleClass}`}>
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-electric-100 text-electric-700 text-sm font-medium mb-6">
               <span className="w-2 h-2 rounded-full bg-electric-500 animate-pulse" aria-hidden="true" />
-              Komunitas Robotic Electrical Engineering
+              Komunitas Robot Aceh · Teknik Elektro USK · Banda Aceh
             </span>
           </div>
 
@@ -81,19 +81,15 @@ export function HeroSection() {
             id="hero-heading"
             className={`text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-6 ${baseTransition} delay-100 ${visibleClass}`}
           >
-            <span className="text-navy-900">Build Robots.</span>{' '}
-            <span className="gradient-text">Build Engineers.</span>
+            <span className="text-navy-900">Forge Engineers.</span>{' '}
+            <span className="gradient-text">Win Competitions.</span>
           </h1>
 
-          {/* Tagline */}
-          <p className={`text-lg md:text-xl text-gray-600 mb-4 font-medium ${baseTransition} delay-200 ${visibleClass}`}>
-            Where Engineers Build the Future
-          </p>
-
           {/* Description */}
-          <p className={`text-base md:text-lg text-gray-800 mb-8 max-w-2xl leading-relaxed ${baseTransition} delay-300 ${visibleClass}`}>
-            KROENG adalah komunitas robotika mahasiswa Teknik Elektro USK yang mengembangkan
-            engineer masa depan melalui kompetisi, kolaborasi, dan proyek teknologi nyata.
+          <p className={`text-base md:text-lg text-gray-800 mb-8 max-w-2xl leading-relaxed ${baseTransition} delay-200 ${visibleClass}`}>
+            KROENG adalah komunitas robot Aceh dari Universitas Syiah Kuala — mencetak
+            engineer berprestasi lewat KRI, KRTI, dan kompetisi robotika nasional.
+            Berbasis di Banda Aceh, untuk Indonesia.
           </p>
 
           {/* CTA */}

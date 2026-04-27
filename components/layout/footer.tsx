@@ -42,8 +42,8 @@ export function Footer() {
               </div>
             </div>
             <p className="text-gray-400 mb-6 max-w-md leading-relaxed">
-              Where Engineers Build the Future. Komunitas robotika mahasiswa Teknik Elektro yang
-              mengembangkan engineer masa depan melalui kompetisi, kolaborasi, dan proyek teknologi nyata.
+              Forge Engineers. Win Competitions. Komunitas robotika kompetitif mahasiswa Teknik Elektro USK
+              yang mencetak engineer berprestasi lewat KRI, KRTI, dan kompetisi robotika nasional.
             </p>
             <div className="flex items-center gap-4">
               {footerLinks.social.map((item) => (
