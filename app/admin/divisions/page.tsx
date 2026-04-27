@@ -55,6 +55,23 @@ import { Badge } from '@/components/ui/badge';
 import { supabase, Division } from '@/lib/supabase';
 import { toast } from 'sonner';
 
+// Warna yang tersedia untuk divisi (selaras dengan palet electric/navy/gold website)
+const DIVISION_COLORS = [
+  { label: 'Electric Blue',  hex: '#0ea5e9' },
+  { label: 'Deep Navy',      hex: '#1e40af' },
+  { label: 'Cyan',           hex: '#0891b2' },
+  { label: 'Indigo',         hex: '#4338ca' },
+  { label: 'Violet',         hex: '#7c3aed' },
+  { label: 'Fuchsia',        hex: '#a21caf' },
+  { label: 'Rose',           hex: '#e11d48' },
+  { label: 'Orange',         hex: '#ea580c' },
+  { label: 'Amber',          hex: '#d97706' },
+  { label: 'Gold',           hex: '#ca8a04' },
+  { label: 'Emerald',        hex: '#059669' },
+  { label: 'Teal',           hex: '#0d9488' },
+  { label: 'Slate',          hex: '#475569' },
+];
+
 // Ikon yang tersedia untuk divisi
 const AVAILABLE_ICONS = [
   { name: 'Zap', icon: Zap },
@@ -101,6 +118,7 @@ type DivisionForm = {
   slug: string;
   description: string;
   icon: string;
+  color: string;
   order_index: number;
 };
 
@@ -109,6 +127,7 @@ const emptyForm: DivisionForm = {
   slug: '',
   description: '',
   icon: 'Layers',
+  color: '#0ea5e9',
   order_index: 0,
 };
 
@@ -158,6 +177,7 @@ export default function AdminDivisionsPage() {
       slug: division.slug,
       description: division.description || '',
       icon: division.icon || 'Layers',
+      color: division.color || '#0ea5e9',
       order_index: division.order_index,
     });
     setSlugManuallyEdited(true);
@@ -194,6 +214,7 @@ export default function AdminDivisionsPage() {
         slug: form.slug.trim(),
         description: form.description.trim() || null,
         icon: form.icon,
+        color: form.color,
         order_index: form.order_index,
       };
 
@@ -308,8 +329,14 @@ export default function AdminDivisionsPage() {
                   <GripVertical className="w-4 h-4 text-gray-300 flex-shrink-0" />
 
                   {/* Icon */}
-                  <div className="w-10 h-10 rounded-lg bg-electric-100 flex items-center justify-center flex-shrink-0">
-                    <DivisionIcon iconName={division.icon} className="w-5 h-5 text-electric-600" />
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{
+                      backgroundColor: (division.color || '#0ea5e9') + '20',
+                      color: division.color || '#0ea5e9',
+                    }}
+                  >
+                    <DivisionIcon iconName={division.icon} className="w-5 h-5" />
                   </div>
 
                   {/* Info */}
@@ -319,6 +346,11 @@ export default function AdminDivisionsPage() {
                       <Badge variant="secondary" className="text-xs font-mono">
                         {division.slug}
                       </Badge>
+                      <span
+                        className="inline-block w-3 h-3 rounded-full ring-1 ring-black/10"
+                        style={{ backgroundColor: division.color || '#0ea5e9' }}
+                        title={division.color || '#0ea5e9'}
+                      />
                     </div>
                     {division.description && (
                       <p className="text-sm text-gray-500 mt-0.5 truncate">{division.description}</p>
@@ -437,6 +469,37 @@ export default function AdminDivisionsPage() {
                     <Icon className="w-5 h-5" />
                   </button>
                 ))}
+              </div>
+            </div>
+
+            {/* Color picker */}
+            <div className="space-y-1.5">
+              <Label>
+                Warna Divisi
+                <span className="text-gray-400 font-normal ml-1 text-xs">
+                  (tampil di profil member)
+                </span>
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {DIVISION_COLORS.map(({ label, hex }) => (
+                  <button
+                    key={hex}
+                    type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, color: hex }))}
+                    className={`w-8 h-8 rounded-full transition-transform hover:scale-110 ring-offset-2 ${
+                      form.color === hex ? 'ring-2 ring-gray-800 scale-110' : 'ring-1 ring-black/10'
+                    }`}
+                    style={{ backgroundColor: hex }}
+                    title={label}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <div
+                  className="w-6 h-6 rounded-full ring-1 ring-black/10 flex-shrink-0"
+                  style={{ backgroundColor: form.color }}
+                />
+                <span className="text-xs text-gray-500 font-mono">{form.color}</span>
               </div>
             </div>
 
