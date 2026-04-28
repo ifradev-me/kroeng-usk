@@ -53,24 +53,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { supabase, Division } from '@/lib/supabase';
+import { DIVISION_COLORS } from '@/lib/constants';
 import { toast } from 'sonner';
-
-// Warna yang tersedia untuk divisi (selaras dengan palet electric/navy/gold website)
-const DIVISION_COLORS = [
-  { label: 'Electric Blue',  hex: '#0ea5e9' },
-  { label: 'Deep Navy',      hex: '#1e40af' },
-  { label: 'Cyan',           hex: '#0891b2' },
-  { label: 'Indigo',         hex: '#4338ca' },
-  { label: 'Violet',         hex: '#7c3aed' },
-  { label: 'Fuchsia',        hex: '#a21caf' },
-  { label: 'Rose',           hex: '#e11d48' },
-  { label: 'Orange',         hex: '#ea580c' },
-  { label: 'Amber',          hex: '#d97706' },
-  { label: 'Gold',           hex: '#ca8a04' },
-  { label: 'Emerald',        hex: '#059669' },
-  { label: 'Teal',           hex: '#0d9488' },
-  { label: 'Slate',          hex: '#475569' },
-];
 
 // Ikon yang tersedia untuk divisi
 const AVAILABLE_ICONS = [

@@ -1,26 +1,14 @@
 import Link from 'next/link';
-import { Zap, Code, Palette, Users, ArrowRight } from 'lucide-react';
+import { Zap, Code, Palette, Users, ArrowRight, Cpu, Wrench, Megaphone, Globe, Camera, Music, BookOpen, Rocket, Shield, Database, Wifi, Settings, Star, Heart, Layout, Terminal, Layers } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { supabase, Division } from '@/lib/supabase';
 import { AnimateOnScroll } from '@/components/ui/animate-on-scroll';
+import { getDivisionColorTheme } from '@/lib/constants';
 
-// Icon mapping
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  electrical: Zap,
-  programmer: Code,
-  designer: Palette,
-  'non-technical': Users,
-  default: Users,
-};
-
-// Color mapping
-const colorMap: Record<string, string> = {
-  electrical: 'from-gold-500 to-gold-600',
-  programmer: 'from-electric-500 to-electric-600',
-  designer: 'from-pink-500 to-pink-600',
-  'non-technical': 'from-green-500 to-green-600',
-  default: 'from-gray-500 to-gray-600',
+  Zap, Code, Palette, Users, Cpu, Wrench, Megaphone, Globe, Camera, Music,
+  BookOpen, Rocket, Shield, Database, Wifi, Settings, Star, Heart, Layout, Terminal, Layers,
 };
 
 // Fallback data
@@ -69,8 +57,8 @@ export async function DivisionsSection() {
         {/* Divisions Grid */}
         <ul className="grid sm:grid-cols-2 gap-4 sm:gap-6 list-none" role="list">
           {divisions.map((division, index) => {
-            const Icon = iconMap[division.slug || 'default'] || iconMap.default;
-            const gradient = colorMap[division.slug || 'default'] || colorMap.default;
+            const Icon = (division.icon ? iconMap[division.icon] : null) || iconMap['Users'];
+            const theme = getDivisionColorTheme(division.color);
 
             return (
               <li key={division.id}>
@@ -85,7 +73,8 @@ export async function DivisionsSection() {
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex items-start gap-3 sm:gap-4">
                           <div
-                            className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white group-hover:scale-110 transition-transform`}
+                            className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform"
+                            style={{ background: theme.gradient }}
                             aria-hidden="true"
                           >
                             <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
