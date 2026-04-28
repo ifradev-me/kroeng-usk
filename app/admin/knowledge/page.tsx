@@ -28,20 +28,8 @@ import { ImageUpload } from '@/components/ui/image-upload';
 import { supabase, Knowledge } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import type { Components } from 'react-markdown';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 
-const previewComponents: Components = {
-  a: ({ href, children, ...props }) => {
-    const isExternal = href?.startsWith('http://') || href?.startsWith('https://') || href?.startsWith('//');
-    return (
-      <a href={href} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined} {...props}>
-        {children}
-      </a>
-    );
-  },
-};
 
 const categories = [
   { value: 'all', label: 'All Categories' },
@@ -333,11 +321,9 @@ print('Hello World')
                     />
                   </TabsContent>
                   <TabsContent value="preview" className="mt-0">
-                    <div className="border rounded-md p-4 min-h-[350px] max-h-[450px] overflow-y-auto bg-white prose prose-sm max-w-none">
+                    <div className="border rounded-md p-4 min-h-[350px] max-h-[450px] overflow-y-auto bg-white">
                       {formData.content ? (
-                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={previewComponents}>
-                          {formData.content}
-                        </ReactMarkdown>
+                        <MarkdownRenderer content={formData.content} />
                       ) : (
                         <p className="text-gray-400 italic">Nothing to preview...</p>
                       )}
