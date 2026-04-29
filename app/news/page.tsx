@@ -29,14 +29,15 @@ async function getNews(): Promise<News[]> {
     .order('published_at', { ascending: false });
 
   if (error) {
-    console.error('Error fetching news:', error);
+    console.error('[News Page] Error fetching news:', error.message, error.code);
     return [];
   }
 
+  console.log('[News Page] Fetched news count:', data?.length ?? 0);
   return data || [];
 }
 
-export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 export default async function NewsPage() {
   const news = await getNews();
