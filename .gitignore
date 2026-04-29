@@ -13,8 +13,8 @@
 /out/
 
 # AI
-/.claude/
-/.bolt/
+/.claude
+/.bolt
 
 # production
 /build
