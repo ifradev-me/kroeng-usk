@@ -17,7 +17,11 @@ Portal web lengkap yang jadi rumah digital komunitas secara serius:
 - Tampilan profesional yang membuat komunitas diperhitungkan di luar kampus
 
 ## Demo
-(screenshot landing page + halaman admin + form pendaftaran anggota)
+> ![landing page](public/images/kroeng%20usk%20-%20organisasi%20kampus.png)
+
+> ![about us](public/images/kroeng%203.png)
+
+> ![knowledge base](public/images/kroeng%202.png)
 
 ## Use Cases
 - Unit kegiatan mahasiswa (UKM) yang ingin tampil profesional
