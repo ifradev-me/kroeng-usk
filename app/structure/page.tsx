@@ -4,28 +4,32 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase, Member, Division } from '@/lib/supabase';
-import { MembersGrid } from './members-grid';
+import { OrgChart } from './org-chart';
 
 export const metadata: Metadata = {
   title: 'Struktur Organisasi',
-  description: 'Kenali core team dan divisi KROENG USK — komunitas robotika kompetitif Teknik Elektro USK yang mencetak engineer berprestasi di KRI, KRTI, dan kompetisi nasional.',
-  keywords: ['struktur organisasi', 'core team', 'divisi KROENG', 'anggota KROENG', 'tim robotika USK', 'Electrical Division', 'Programmer Division', 'Designer Division'],
+  description: 'Bagan struktur organisasi KROENG USK — kenali ketua, wakil, sekretaris, bendahara, dan ketua setiap divisi.',
+  keywords: ['struktur organisasi', 'bagan organisasi', 'divisi KROENG', 'anggota KROENG', 'tim robotika USK'],
   openGraph: {
     title: 'Struktur Organisasi | KROENG',
-    description: 'Kenali core team dan divisi-divisi KROENG USK — komunitas robotika kompetitif Teknik Elektro USK.',
+    description: 'Bagan struktur organisasi KROENG USK.',
     type: 'website',
   },
 };
 
-async function getCoreTeam(): Promise<Member[]> {
+type OrgMember = Member & {
+  profile?: { full_name: string | null; avatar_url: string | null; nim: string | null } | null;
+};
+
+async function getOrgMembers(): Promise<OrgMember[]> {
   const { data, error } = await supabase
     .from('members')
-    .select('*, division:divisions(*)')
-    .eq('is_core_team', true)
+    .select('*, profile:profiles(full_name, avatar_url, nim)')
+    .in('position', ['Ketua', 'Wakil Ketua', 'Sekretaris', 'Bendahara', 'Ketua Divisi', 'Wakil Ketua Divisi'])
     .order('order_index', { ascending: true });
 
   if (error) {
-    console.error('Error fetching core team:', error);
+    console.error('Error fetching org members:', error);
     return [];
   }
 
@@ -49,7 +53,7 @@ async function getDivisions(): Promise<Division[]> {
 export const revalidate = 60;
 
 export default async function StructurePage() {
-  const [coreTeam, divisions] = await Promise.all([getCoreTeam(), getDivisions()]);
+  const [members, divisions] = await Promise.all([getOrgMembers(), getDivisions()]);
 
   return (
     <div className="section-padding">
@@ -59,36 +63,27 @@ export default async function StructurePage() {
             Our Team
           </span>
           <h1 className="text-3xl md:text-4xl font-heading font-bold text-navy-900 mt-2">
-            Organization Structure
+            Struktur Organisasi
           </h1>
           <p className="text-gray-600 mt-4">
-            KROENG memiliki struktur organisasi yang fleksibel dan kolaboratif. Setiap anggota
-            berkontribusi sesuai dengan keahlian dan passion mereka.
+            Bagan struktur organisasi KROENG USK. Setiap anggota berkontribusi sesuai peran dan divisinya.
           </p>
         </div>
 
-        <div className="mb-16">
-          <h2 className="text-2xl font-heading font-bold text-navy-900 mb-8 text-center">
-            Core Team
-          </h2>
-          <Suspense
-            fallback={
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="bg-gray-100 rounded-xl h-64 animate-pulse" />
-                ))}
-              </div>
-            }
-          >
-            <MembersGrid members={coreTeam} />
-          </Suspense>
-        </div>
+        <Suspense
+          fallback={
+            <div className="flex justify-center py-24">
+              <div className="animate-spin w-10 h-10 border-4 border-electric-500 border-t-transparent rounded-full" />
+            </div>
+          }
+        >
+          <OrgChart members={members} divisions={divisions} />
+        </Suspense>
 
-        <div className="text-center">
-          <h2 className="text-2xl font-heading font-bold text-navy-900 mb-4">Explore Divisions</h2>
+        <div className="text-center mt-16 pt-12 border-t border-gray-100">
+          <h2 className="text-2xl font-heading font-bold text-navy-900 mb-4">Lihat Anggota Divisi</h2>
           <p className="text-gray-600 mb-8 max-w-xl mx-auto">
-            Lihat anggota-anggota dari setiap divisi KROENG. Setiap divisi memiliki keahlian dan
-            fokus yang berbeda.
+            Lihat seluruh anggota dari setiap divisi KROENG beserta keahlian mereka.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             {divisions.map((division) => (

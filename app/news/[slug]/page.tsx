@@ -63,7 +63,7 @@ export async function generateStaticParams() {
   return (data || []).map((item) => ({ slug: item.slug }));
 }
 
-export const revalidate = 60;
+export const revalidate = 0;
 
 export default async function NewsDetailPage({ params }: PageProps) {
   const news = await getNews(params.slug);
