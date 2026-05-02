@@ -7,7 +7,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: {
+    fetch: (url, options) => fetch(url, { ...options, cache: 'no-store' }),
+  },
+});
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -19,6 +23,7 @@ export type Profile = {
   full_name: string | null;
   avatar_url: string | null;
   role: 'guest' | 'user' | 'admin';
+  nim: string | null;
   division: string | null;
   position: string | null;
   bio: string | null;
@@ -45,7 +50,6 @@ export type Member = {
   division_id: string | null;
   image_url: string | null;
   social_links: Record<string, string>;
-  is_core_team: boolean;
   order_index: number;
   year: string | null;
   skills: string[];
