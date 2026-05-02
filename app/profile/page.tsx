@@ -16,6 +16,7 @@ import {
   XCircle,
   AlertCircle,
   Shield,
+  Hash,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,6 +71,7 @@ export default function ProfilePage() {
 
   const [profileData, setProfileData] = useState({
     full_name: '',
+    nim: '',
     division: '',
     position: '',
     bio: '',
@@ -154,6 +156,7 @@ export default function ProfilePage() {
     if (profile) {
       setProfileData({
         full_name: profile.full_name || '',
+        nim: profile.nim || '',
         division: profile.division || '',
         position: profile.position || '',
         bio: profile.bio || '',
@@ -194,6 +197,7 @@ export default function ProfilePage() {
         .from('profiles')
         .update({
           full_name: profileData.full_name,
+          nim: profileData.nim || null,
           division: profileData.division,
           position: profileData.position,
           bio: profileData.bio,
@@ -529,6 +533,22 @@ export default function ProfilePage() {
                   Email
                 </Label>
                 <p className="text-navy-900 font-medium">{user.email}</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-gray-600">
+                  <Hash className="w-4 h-4" />
+                  NIM
+                </Label>
+                {isEditing ? (
+                  <Input
+                    value={profileData.nim}
+                    onChange={(e) => setProfileData({ ...profileData, nim: e.target.value })}
+                    placeholder="e.g., 2104101010xxx"
+                  />
+                ) : (
+                  <p className="text-navy-900 font-medium">{profile?.nim || '-'}</p>
+                )}
               </div>
 
               <div className="space-y-2">

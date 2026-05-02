@@ -120,7 +120,6 @@ export default function AdminMembersPage() {
   const [editForm, setEditForm] = useState({
     division_id: '',
     position: '',
-    is_core_team: false,
     is_admin: false,
     skills: [] as string[],
   });
@@ -136,7 +135,6 @@ export default function AdminMembersPage() {
     division_id: '',
     position: '',
     year: '',
-    is_core_team: false,
     skills: [] as string[],
   });
   const [addSkillInput, setAddSkillInput] = useState('');
@@ -172,7 +170,6 @@ export default function AdminMembersPage() {
       const { data: membersData } = await supabase
         .from('members')
         .select('*, division:divisions(*), profile:profiles(full_name, avatar_url, email, role)')
-        .order('is_core_team', { ascending: false })
         .order('order_index');
       if (membersData) setMembers(membersData);
     } catch (error) {
@@ -194,7 +191,6 @@ export default function AdminMembersPage() {
         position: application.position,
         division_id: application.division_id,
         year: application.year,
-        is_core_team: false,
         order_index: 999,
         skills: application.skills ?? [],
       });
@@ -280,7 +276,6 @@ export default function AdminMembersPage() {
     setEditForm({
       division_id: member.division_id || '',
       position: member.position,
-      is_core_team: member.is_core_team,
       is_admin: member.profile?.role === 'admin',
       skills: member.skills ?? [],
     });
@@ -298,7 +293,6 @@ export default function AdminMembersPage() {
         .update({
           division_id: editForm.division_id || null,
           position: editForm.position.trim(),
-          is_core_team: editForm.is_core_team,
           skills: editForm.skills,
         })
         .eq('id', editingMember.id);
@@ -355,7 +349,6 @@ export default function AdminMembersPage() {
         division_id: addMemberForm.division_id || null,
         position: addMemberForm.position.trim(),
         year: addMemberForm.year.trim() || null,
-        is_core_team: addMemberForm.is_core_team,
         skills: addMemberForm.skills,
         order_index: members.length + 1,
         social_links: {},
@@ -372,7 +365,6 @@ export default function AdminMembersPage() {
         division_id: '',
         position: '',
         year: '',
-        is_core_team: false,
         skills: [],
       });
       setAddSkillInput('');
@@ -698,7 +690,6 @@ export default function AdminMembersPage() {
                       <TableHead>Division</TableHead>
                       <TableHead>Position</TableHead>
                       <TableHead>Year</TableHead>
-                      <TableHead>Core Team</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -726,13 +717,6 @@ export default function AdminMembersPage() {
                         </TableCell>
                         <TableCell>{member.position}</TableCell>
                         <TableCell>{member.year || '-'}</TableCell>
-                        <TableCell>
-                          {member.is_core_team ? (
-                            <Badge className="bg-electric-100 text-electric-700">Core Team</Badge>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -1111,20 +1095,6 @@ export default function AdminMembersPage() {
               )}
             </div>
 
-            {/* Core Team */}
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="edit-core-team"
-                checked={editForm.is_core_team}
-                onCheckedChange={(checked) =>
-                  setEditForm((prev) => ({ ...prev, is_core_team: !!checked }))
-                }
-              />
-              <Label htmlFor="edit-core-team" className="cursor-pointer">
-                Core Team (pengurus inti)
-              </Label>
-            </div>
-
             {/* Admin role — only for members with a linked account */}
             {editingMember?.profile_id ? (
               <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-3 space-y-2">
@@ -1178,7 +1148,7 @@ export default function AdminMembersPage() {
       <Dialog open={addMemberDialogOpen} onOpenChange={(open) => {
         setAddMemberDialogOpen(open);
         if (!open) {
-          setAddMemberForm({ name: '', email: '', image_url: '', division_id: '', position: '', year: '', is_core_team: false, skills: [] });
+          setAddMemberForm({ name: '', email: '', image_url: '', division_id: '', position: '', year: '', skills: [] });
           setAddSkillInput('');
         }
       }}>
@@ -1360,20 +1330,6 @@ export default function AdminMembersPage() {
                   ))}
                 </div>
               )}
-            </div>
-
-            {/* Core Team */}
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="add-core-team"
-                checked={addMemberForm.is_core_team}
-                onCheckedChange={(checked) =>
-                  setAddMemberForm((prev) => ({ ...prev, is_core_team: !!checked }))
-                }
-              />
-              <Label htmlFor="add-core-team" className="cursor-pointer">
-                Core Team (pengurus inti)
-              </Label>
             </div>
 
             {/* Admin note */}

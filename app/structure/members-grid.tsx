@@ -53,8 +53,8 @@ export function MembersGrid({ members }: { members: Member[] }) {
           <CardContent className="p-4 text-center">
             <h3 className="font-heading font-semibold text-navy-900 text-lg">{member.name}</h3>
             <p className="text-electric-600 text-sm font-medium">{member.position}</p>
-            {member.division && (
-              <p className="text-gray-500 text-xs mt-1">{member.division.name}</p>
+            {member.profile?.nim && (
+              <p className="text-gray-500 text-xs mt-1">NIM: {member.profile.nim}</p>
             )}
             {member.skills && member.skills.length > 0 && (
               <div className="flex flex-wrap justify-center gap-1 mt-2">
