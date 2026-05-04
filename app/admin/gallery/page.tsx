@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Dialog,
@@ -49,6 +50,7 @@ export default function AdminGalleryPage() {
     description: '',
     image_url: '',
     category: 'general',
+    is_project: false,
   });
 
   const fetchGallery = async () => {
@@ -80,6 +82,7 @@ export default function AdminGalleryPage() {
       description: formData.description || null,
       image_url: formData.image_url,
       category: formData.category,
+      is_project: formData.is_project,
     };
 
     try {
@@ -95,7 +98,7 @@ export default function AdminGalleryPage() {
 
       setIsOpen(false);
       setEditingItem(null);
-      setFormData({ title: '', description: '', image_url: '', category: 'general' });
+      setFormData({ title: '', description: '', image_url: '', category: 'general', is_project: false });
       fetchGallery();
     } catch (error: any) {
       toast.error('Gagal menyimpan item galeri. Silakan coba lagi.');
@@ -109,6 +112,7 @@ export default function AdminGalleryPage() {
       description: item.description || '',
       image_url: item.image_url,
       category: item.category,
+      is_project: item.is_project,
     });
     setIsOpen(true);
   };
@@ -146,7 +150,7 @@ export default function AdminGalleryPage() {
     setIsOpen(open);
     if (!open) {
       setEditingItem(null);
-      setFormData({ title: '', description: '', image_url: '', category: 'general' });
+      setFormData({ title: '', description: '', image_url: '', category: 'general', is_project: false });
     }
   };
 
@@ -227,6 +231,18 @@ export default function AdminGalleryPage() {
                   rows={3}
                 />
               </div>
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  id="is_project"
+                  checked={formData.is_project}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, is_project: checked === true })
+                  }
+                />
+                <Label htmlFor="is_project" className="cursor-pointer">
+                  Tandai sebagai Project
+                </Label>
+              </div>
               <div className="flex justify-end gap-2 pt-4 pb-2">
                 <Button type="button" variant="outline" onClick={() => handleCloseDialog(false)}>
                   Cancel
@@ -291,12 +307,17 @@ export default function AdminGalleryPage() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredGallery.map((item) => (
             <Card key={item.id} className="group relative overflow-hidden">
-              <div className="aspect-square">
+              <div className="aspect-square relative">
                 <img
                   src={item.image_url}
                   alt={item.title}
                   className="w-full h-full object-cover transition-transform group-hover:scale-105"
                 />
+                {item.is_project && (
+                  <span className="absolute top-2 left-2 bg-electric-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                    Project
+                  </span>
+                )}
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-4">
                 <div className="flex justify-end gap-1">

@@ -7,7 +7,7 @@ async function getStats() {
     const [membersRes, achievementsRes, galleryRes, knowledgeRes] = await Promise.all([
       supabase.from('members').select('id', { count: 'exact', head: true }),
       supabase.from('achievements').select('id', { count: 'exact', head: true }),
-      supabase.from('gallery').select('id', { count: 'exact', head: true }),
+      supabase.from('gallery').select('id', { count: 'exact', head: true }).eq('is_project', true),
       supabase.from('knowledge').select('id', { count: 'exact', head: true }).eq('published', true),
     ]);
 

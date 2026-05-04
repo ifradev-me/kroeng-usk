@@ -93,6 +93,7 @@ export type GalleryItem = {
   description: string | null;
   image_url: string;
   category: string;
+  is_project: boolean;
   created_at: string;
 };
 
