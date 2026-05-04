@@ -100,7 +100,8 @@ export type GalleryItem = {
 export type Contact = {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
+  whatsapp: string | null;
   subject: string | null;
   message: string;
   collaboration_type: string | null;

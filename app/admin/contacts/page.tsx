@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail, MailOpen, Archive, Trash2, ExternalLink } from 'lucide-react';
+import { Mail, MailOpen, Archive, Trash2, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -139,7 +139,7 @@ export default function AdminContactsPage() {
                         {contact.status}
                       </Badge>
                     </h3>
-                    <p className="text-sm text-gray-600">{contact.email}</p>
+                    <p className="text-sm text-gray-600">{contact.whatsapp || '-'}</p>
                     <p className="text-sm text-gray-500 line-clamp-1">
                       {contact.subject || contact.message}
                     </p>
@@ -168,8 +168,8 @@ export default function AdminContactsPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-500">Email:</span>
-                  <p className="font-medium">{selectedContact.email}</p>
+                  <span className="text-gray-500">WhatsApp:</span>
+                  <p className="font-medium">{selectedContact.whatsapp || '-'}</p>
                 </div>
                 <div>
                   <span className="text-gray-500">Date:</span>
@@ -220,12 +220,18 @@ export default function AdminContactsPage() {
                   </Button>
                 </div>
                 <div className="flex gap-2">
-                  <a href={`mailto:${selectedContact.email}`}>
-                    <Button size="sm" className="bg-electric-500 hover:bg-electric-600">
-                      <ExternalLink className="w-4 h-4 mr-1" />
-                      Reply via Email
-                    </Button>
-                  </a>
+                  {selectedContact.whatsapp && (
+                    <a
+                      href={`https://wa.me/${selectedContact.whatsapp.replace(/\D/g, '').replace(/^0/, '62')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button size="sm" className="bg-green-500 hover:bg-green-600">
+                        <Phone className="w-4 h-4 mr-1" />
+                        Chat via WhatsApp
+                      </Button>
+                    </a>
+                  )}
                   <Button
                     variant="destructive"
                     size="sm"

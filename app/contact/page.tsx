@@ -9,6 +9,7 @@ import {
   Linkedin,
   Github,
   CircleCheck as CheckCircle,
+  Phone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,7 +58,7 @@ const socialLinks = [
 ];
 
 const MAX_NAME_LENGTH = 100;
-const MAX_EMAIL_LENGTH = 254;
+const MAX_WA_LENGTH = 20;
 const MAX_SUBJECT_LENGTH = 200;
 const MAX_MESSAGE_LENGTH = 5000;
 const SUBMIT_COOLDOWN_MS = 30_000; // 30 seconds between submissions
@@ -69,7 +70,7 @@ export default function ContactPage() {
   const [honeypot, setHoneypot] = useState('');
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    whatsapp: '',
     subject: '',
     message: '',
     collaboration_type: '',
@@ -93,8 +94,12 @@ export default function ContactPage() {
       toast.error(`Nama maksimal ${MAX_NAME_LENGTH} karakter.`);
       return;
     }
-    if (formData.email.length > MAX_EMAIL_LENGTH) {
-      toast.error(`Email maksimal ${MAX_EMAIL_LENGTH} karakter.`);
+    if (formData.whatsapp.length > MAX_WA_LENGTH) {
+      toast.error(`Nomor WhatsApp maksimal ${MAX_WA_LENGTH} karakter.`);
+      return;
+    }
+    if (!/^\+?[\d\s\-()]{6,20}$/.test(formData.whatsapp)) {
+      toast.error('Nomor WhatsApp tidak valid.');
       return;
     }
     if (formData.subject.length > MAX_SUBJECT_LENGTH) {
@@ -111,7 +116,7 @@ export default function ContactPage() {
     try {
       const { error } = await supabase.from('contacts').insert({
         name: formData.name.trim(),
-        email: formData.email.trim(),
+        whatsapp: formData.whatsapp.trim(),
         subject: formData.subject.trim(),
         message: formData.message.trim(),
         collaboration_type: formData.collaboration_type || null,
@@ -149,7 +154,7 @@ export default function ContactPage() {
                   setSubmitted(false);
                   setFormData({
                     name: '',
-                    email: '',
+                    whatsapp: '',
                     subject: '',
                     message: '',
                     collaboration_type: '',
@@ -212,16 +217,20 @@ export default function ContactPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email *</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="contoh@gmail.com"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        required
-                        maxLength={MAX_EMAIL_LENGTH}
-                      />
+                      <Label htmlFor="whatsapp">Nomor WhatsApp *</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                          id="whatsapp"
+                          type="tel"
+                          placeholder="08xxxxxxxxxx"
+                          value={formData.whatsapp}
+                          onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                          required
+                          maxLength={MAX_WA_LENGTH}
+                          className="pl-10"
+                        />
+                      </div>
                     </div>
                   </div>
 
