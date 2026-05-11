@@ -54,6 +54,20 @@ const CollaborationSection = dynamic(
   }
 );
 
+const LatestNewsSection = dynamic(
+  () => import('@/components/home/latest-news-section').then((mod) => ({ default: mod.LatestNewsSection })),
+  {
+    loading: () => <SectionSkeleton />,
+  }
+);
+
+const LatestKnowledgeSection = dynamic(
+  () => import('@/components/home/latest-knowledge-section').then((mod) => ({ default: mod.LatestKnowledgeSection })),
+  {
+    loading: () => <SectionSkeleton />,
+  }
+);
+
 const CTASection = dynamic(
   () => import('@/components/home/cta-section').then((mod) => ({ default: mod.CTASection })),
   {
@@ -118,10 +132,19 @@ export default function HomePage() {
       <Suspense fallback={<SectionSkeleton />}>
         <CollaborationSection />
       </Suspense>
-
+      
       <Suspense fallback={<SectionSkeleton height="py-16" dark />}>
         <CTASection />
       </Suspense>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <LatestNewsSection />
+      </Suspense>
+
+      <Suspense fallback={<SectionSkeleton />}>
+        <LatestKnowledgeSection />
+      </Suspense>
+
     </>
   );
 }
