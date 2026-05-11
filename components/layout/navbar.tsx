@@ -63,7 +63,7 @@ export function Navbar() {
       <nav className="container-custom flex items-center justify-between py-4 px-4 md:px-8">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-electric-500 to-navy-600 flex items-center justify-center">
-            <Image src="/images/kroengusk-icon.png" alt="KROENG USK" width={40} height={40} />
+            <Image src="/images/kroengusk-icon.webp" alt="KROENG USK" width={40} height={40} />
           </div>
           <span className={cn(
             'font-display font-bold text-xl transition-colors',

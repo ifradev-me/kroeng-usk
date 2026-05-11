@@ -137,7 +137,7 @@ export function generateArticleJsonLd({
     publisher: {
       '@type': 'Organization',
       name: siteName,
-      logo: { '@type': 'ImageObject', url: `${baseUrl}/images/kroengusk-icon.png` },
+      logo: { '@type': 'ImageObject', url: `${baseUrl}/images/kroengusk-icon.webp` },
     },
   };
 }

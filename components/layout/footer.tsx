@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Instagram, Linkedin, Github } from 'lucide-react';
+import Image from 'next/image';
 
 const footerLinks = {
   navigation: [
@@ -34,7 +35,7 @@ export function Footer() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-electric-500 to-electric-600 flex items-center justify-center">
-                <span className="text-white font-display font-bold text-xl">K</span>
+                <Image src="/images/kroengusk-icon.webp" alt="KROENG USK" width={40} height={40} />
               </div>
               <div>
                 <h3 className="font-display font-bold text-xl">KROENG</h3>
