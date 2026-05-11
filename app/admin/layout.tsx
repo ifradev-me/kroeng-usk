@@ -150,7 +150,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
           <Link href="/admin" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-electric-500 to-navy-600 flex items-center justify-center">
-               <Image src="/images/kroengusk-icon.png" alt="KROENG USK" width={40} height={40} />
+               <Image src="/images/kroengusk-icon.webp" alt="KROENG USK" width={40} height={40} />
             </div>
             <span className="font-heading font-bold text-navy-900">Admin Panel</span>
           </Link>
