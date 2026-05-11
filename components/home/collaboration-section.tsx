@@ -52,25 +52,25 @@ export function CollaborationSection() {
   return (
     <section className="section-padding bg-gray-50" ref={ref}>
       <div className="container-custom">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 items-center">
           <div
             className={`transition-all duration-700 ${
               isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
             }`}
           >
-            <span className="text-electric-600 font-semibold text-sm uppercase tracking-wider">
+            <span className="text-electric-600 font-semibold text-xs sm:text-sm uppercase tracking-wider">
               Partnership
             </span>
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-navy-900 mt-2 mb-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-navy-900 mt-2 mb-4 sm:mb-6">
               Let&apos;s Build Together
             </h2>
-            <p className="text-gray-600 leading-relaxed mb-8">
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed mb-6 sm:mb-8">
               KROENG terbuka untuk kolaborasi dengan berbagai pihak. Punya ide kolaborasi? Kami siap
               diskusi.
             </p>
 
             <Link href="/contact">
-              <Button className="bg-electric-500 hover:bg-electric-600 text-white gap-2">
+              <Button className="bg-electric-500 hover:bg-electric-600 text-white gap-2 text-sm sm:text-base">
                 Contact Us
                 <ArrowRight className="w-4 h-4" />
               </Button>
@@ -78,21 +78,21 @@ export function CollaborationSection() {
           </div>
 
           <div
-            className={`grid grid-cols-2 gap-4 transition-all duration-700 delay-200 ${
+            className={`grid grid-cols-2 gap-3 sm:gap-4 transition-all duration-700 delay-200 ${
               isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
             }`}
           >
             {collaborationTypes.map((type, index) => (
               <div
                 key={type.title}
-                className="p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow"
+                className="p-4 sm:p-5 md:p-6 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="w-12 h-12 rounded-lg bg-electric-100 flex items-center justify-center mb-4">
-                  <type.icon className="w-6 h-6 text-electric-600" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-electric-100 flex items-center justify-center mb-3 sm:mb-4">
+                  <type.icon className="w-5 h-5 sm:w-6 sm:h-6 text-electric-600" />
                 </div>
-                <h3 className="font-heading font-semibold text-navy-900 mb-2">{type.title}</h3>
-                <p className="text-gray-600 text-sm">{type.description}</p>
+                <h3 className="font-heading font-semibold text-navy-900 mb-1.5 sm:mb-2 text-sm sm:text-base">{type.title}</h3>
+                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">{type.description}</p>
               </div>
             ))}
           </div>

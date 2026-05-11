@@ -64,20 +64,20 @@ export function WhatWeDoSection() {
     >
       <div className="container-custom">
         {/* Header */}
-        <header className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-electric-600 font-semibold text-sm uppercase tracking-wider">
+        <header className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
+          <span className="text-electric-600 font-semibold text-xs sm:text-sm uppercase tracking-wider">
             Our Activities
           </span>
           <h2
             id="activities-heading"
-            className="text-3xl md:text-4xl font-heading font-bold text-navy-900 mt-2"
+            className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-navy-900 mt-2"
           >
             What We Do
           </h2>
         </header>
 
         {/* Activities Grid */}
-        <ul className="grid md:grid-cols-2 gap-6 list-none" role="list">
+        <ul className="grid sm:grid-cols-2 gap-4 sm:gap-6 list-none" role="list">
           {activities.map((activity, index) => (
             <li key={activity.title}>
               <Card
@@ -86,17 +86,17 @@ export function WhatWeDoSection() {
                 }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
-                <CardContent className="p-6">
+                <CardContent className="p-4 sm:p-6">
                   <div
-                    className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${activity.color} text-white mb-4 group-hover:scale-110 transition-transform`}
+                    className={`inline-flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${activity.color} text-white mb-3 sm:mb-4 group-hover:scale-110 transition-transform`}
                     aria-hidden="true"
                   >
-                    <activity.icon className="w-6 h-6" />
+                    <activity.icon className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-                  <h3 className="text-xl font-heading font-semibold text-navy-900 mb-3">
+                  <h3 className="text-lg sm:text-xl font-heading font-semibold text-navy-900 mb-2 sm:mb-3">
                     {activity.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">{activity.description}</p>
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{activity.description}</p>
                 </CardContent>
               </Card>
             </li>

@@ -60,13 +60,13 @@ export function WhyJoinSection() {
     >
       <div className="container-custom">
         {/* Header */}
-        <header className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-electric-600 font-semibold text-sm uppercase tracking-wider">
+        <header className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
+          <span className="text-electric-600 font-semibold text-xs sm:text-sm uppercase tracking-wider">
             Kenapa KROENG?
           </span>
           <h2
             id="why-join-heading"
-            className="text-3xl md:text-4xl font-heading font-bold text-navy-900 mt-2"
+            className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-navy-900 mt-2"
           >
             Why Join KROENG
           </h2>
@@ -74,7 +74,7 @@ export function WhyJoinSection() {
 
         {/* Reasons Grid */}
         <ul
-          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 list-none"
+          className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 list-none"
           role="list"
           aria-label="Alasan bergabung dengan KROENG"
         >
@@ -86,17 +86,17 @@ export function WhyJoinSection() {
                 }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
-                <CardContent className="p-6 text-center">
+                <CardContent className="p-4 sm:p-6 text-center">
                   <div
-                    className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-electric-100 text-electric-600 mb-4 group-hover:bg-electric-500 group-hover:text-white transition-colors"
+                    className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-electric-100 text-electric-600 mb-3 sm:mb-4 group-hover:bg-electric-500 group-hover:text-white transition-colors"
                     aria-hidden="true"
                   >
-                    <reason.icon className="w-7 h-7" />
+                    <reason.icon className="w-6 h-6 sm:w-7 sm:h-7" />
                   </div>
-                  <h3 className="text-lg font-heading font-semibold text-navy-900 mb-3">
+                  <h3 className="text-base sm:text-lg font-heading font-semibold text-navy-900 mb-2 sm:mb-3">
                     {reason.title}
                   </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{reason.description}</p>
+                  <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">{reason.description}</p>
                 </CardContent>
               </Card>
             </li>
