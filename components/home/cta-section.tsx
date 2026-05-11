@@ -41,7 +41,7 @@ export function CTASection() {
 
           {/* CTA Buttons */}
           <nav aria-label="Call to action" className="flex flex-wrap justify-center gap-3 sm:gap-4">
-            <Link href="/contact" className="flex-1 sm:flex-none min-w-[140px]">
+            <Link href="/profile" className="flex-1 sm:flex-none min-w-[140px]">
               <Button
                 size="lg"
                 className="w-full sm:w-auto bg-electric-500 hover:bg-electric-400 text-white gap-2 h-11 sm:h-12 px-6 sm:px-8 text-sm sm:text-base"
@@ -50,7 +50,7 @@ export function CTASection() {
                 <ArrowRight className="w-4 h-4" aria-hidden="true" />
               </Button>
             </Link>
-            <Link href="/profile" className="flex-1 sm:flex-none min-w-[140px]">
+            <Link href="/contract" className="flex-1 sm:flex-none min-w-[140px]">
               <Button
                 size="lg"
                 variant="outline"
