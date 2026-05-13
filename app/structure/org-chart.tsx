@@ -114,15 +114,13 @@ function PersonCard({
   );
 }
 
-// ─── Division card (Ketua Divisi + Wakil Divisi inside) ──────────────────────
+// ─── Division card (Ketua Divisi inside) ─────────────────────────────────────
 function DivisionCard({
   division,
   ketuaDiv,
-  wakilDiv,
 }: {
   division: Division;
   ketuaDiv?: OrgMember;
-  wakilDiv?: OrgMember;
 }) {
   return (
     <div className="inline-flex flex-col bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden w-44 text-left">
@@ -132,24 +130,23 @@ function DivisionCard({
       >
         {division.name}
       </div>
-      <div className="p-3 space-y-2.5">
-        {[
-          { label: 'Ketua Divisi', member: ketuaDiv },
-          { label: 'Wakil Divisi', member: wakilDiv },
-        ].map(({ label, member }) => (
-          <div key={label}>
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <OrgAvatar src={member?.image_url || member?.profile?.avatar_url} name={member?.name ?? '-'} size="sm" />
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-navy-900 truncate">
-                  {member?.name ?? <span className="text-gray-300 italic text-xs">-</span>}
-                </p>
-                {member?.profile?.nim && <p className="text-[10px] text-gray-400">{member.profile.nim}</p>}
-              </div>
-            </div>
+      <div className="p-3">
+        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Ketua Divisi</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <OrgAvatar
+            src={ketuaDiv?.image_url || ketuaDiv?.profile?.avatar_url}
+            name={ketuaDiv?.name ?? '-'}
+            size="sm"
+          />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-navy-900 truncate">
+              {ketuaDiv?.name ?? <span className="text-gray-300 italic text-xs">-</span>}
+            </p>
+            {ketuaDiv?.profile?.nim && (
+              <p className="text-[10px] text-gray-400">{ketuaDiv.profile.nim}</p>
+            )}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
@@ -199,7 +196,6 @@ export function OrgChart({
       key={div.id}
       division={div}
       ketuaDiv={find('Ketua Divisi', div.id)}
-      wakilDiv={find('Wakil Ketua Divisi', div.id)}
     />
   ));
 

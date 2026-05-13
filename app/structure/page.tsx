@@ -25,7 +25,7 @@ async function getOrgMembers(): Promise<OrgMember[]> {
   const { data, error } = await supabase
     .from('members')
     .select('*, profile:profiles(full_name, avatar_url, nim)')
-    .in('position', ['Ketua', 'Wakil Ketua', 'Sekretaris', 'Bendahara', 'Ketua Divisi', 'Wakil Ketua Divisi'])
+    .in('position', ['Ketua', 'Wakil Ketua', 'Sekretaris', 'Bendahara', 'Ketua Divisi'])
     .order('order_index', { ascending: true });
 
   if (error) {

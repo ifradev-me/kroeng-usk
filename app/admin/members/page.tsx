@@ -1016,14 +1016,13 @@ export default function AdminMembersPage() {
                   <SelectItem value="Sekretaris">Sekretaris</SelectItem>
                   <SelectItem value="Bendahara">Bendahara</SelectItem>
                   <SelectItem value="Ketua Divisi">Ketua Divisi</SelectItem>
-                  <SelectItem value="Wakil Ketua Divisi">Wakil Ketua Divisi</SelectItem>
                   <SelectItem value="Anggota">Anggota</SelectItem>
                 </SelectContent>
               </Select>
               <Input
                 placeholder="Atau ketik jabatan custom..."
                 value={
-                  ['Ketua','Wakil Ketua','Sekretaris','Bendahara','Ketua Divisi','Wakil Ketua Divisi','Anggota'].includes(editForm.position)
+                  ['Ketua','Wakil Ketua','Sekretaris','Bendahara','Ketua Divisi','Anggota'].includes(editForm.position)
                     ? ''
                     : editForm.position
                 }
@@ -1229,7 +1228,7 @@ export default function AdminMembersPage() {
               </Label>
               <Select
                 value={
-                  ['Ketua','Wakil Ketua','Sekretaris','Bendahara','Ketua Divisi','Wakil Ketua Divisi','Anggota'].includes(addMemberForm.position)
+                  ['Ketua','Wakil Ketua','Sekretaris','Bendahara','Ketua Divisi','Anggota'].includes(addMemberForm.position)
                     ? addMemberForm.position
                     : ''
                 }
@@ -1244,14 +1243,13 @@ export default function AdminMembersPage() {
                   <SelectItem value="Sekretaris">Sekretaris</SelectItem>
                   <SelectItem value="Bendahara">Bendahara</SelectItem>
                   <SelectItem value="Ketua Divisi">Ketua Divisi</SelectItem>
-                  <SelectItem value="Wakil Ketua Divisi">Wakil Ketua Divisi</SelectItem>
                   <SelectItem value="Anggota">Anggota</SelectItem>
                 </SelectContent>
               </Select>
               <Input
                 placeholder="Atau ketik jabatan custom..."
                 value={
-                  ['Ketua','Wakil Ketua','Sekretaris','Bendahara','Ketua Divisi','Wakil Ketua Divisi','Anggota'].includes(addMemberForm.position)
+                  ['Ketua','Wakil Ketua','Sekretaris','Bendahara','Ketua Divisi','Anggota'].includes(addMemberForm.position)
                     ? ''
                     : addMemberForm.position
                 }
