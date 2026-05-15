@@ -150,6 +150,7 @@ export type MemberApplication = {
   experience: string | null;
   motivation: string | null;
   portfolio_url: string | null;
+  attachment_urls: string[] | null;
   
   // Status
   status: 'pending' | 'approved' | 'rejected';

@@ -36,6 +36,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth-context';
 import { supabase, Division } from '@/lib/supabase';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
+import { FileUpload } from '@/components/ui/file-upload';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -79,7 +80,7 @@ export default function ProfilePage() {
 
   const [applicationData, setApplicationData] = useState({
     division_id: '',
-    position: 'Member',
+    position: 'Anggota',
     year: new Date().getFullYear().toString(),
     nim: '',
     phone: '',
@@ -89,6 +90,7 @@ export default function ProfilePage() {
     experience: '',
     motivation: '',
     portfolio_url: '',
+    attachment_urls: [] as string[],
   });
   const [skillInput, setSkillInput] = useState('');
 
@@ -174,14 +176,14 @@ export default function ProfilePage() {
         if (error) {
           toast.error(error.message);
         } else {
-          toast.success('Welcome back!');
+          toast.success('Selamat datang kembali!');
         }
       } else {
         const { error } = await signUp(formData.email, formData.password, formData.fullName);
         if (error) {
           toast.error(error.message);
         } else {
-          toast.success('Account created! Please check your email to verify.');
+          toast.success('Akun berhasil dibuat! Silakan cek email untuk verifikasi.');
         }
       }
     } finally {
@@ -209,9 +211,9 @@ export default function ProfilePage() {
 
       await refreshProfile();
       setIsEditing(false);
-      toast.success('Profile updated successfully!');
+      toast.success('Profil berhasil diperbarui!');
     } catch (error) {
-      toast.error('Failed to update profile');
+      toast.error('Gagal memperbarui profil');
     }
   };
 
@@ -221,15 +223,15 @@ export default function ProfilePage() {
 
     // Validation
     if (!applicationData.phone || !applicationData.whatsapp) {
-      toast.error('Please fill in your phone and WhatsApp number');
+      toast.error('Mohon isi nomor telepon dan WhatsApp');
       return;
     }
     if (!applicationData.division_reason) {
-      toast.error('Please explain why you chose this division');
+      toast.error('Mohon jelaskan alasan memilih divisi ini');
       return;
     }
     if (applicationData.skills.length === 0) {
-      toast.error('Please add at least one skill');
+      toast.error('Mohon tambahkan minimal satu skill');
       return;
     }
 
@@ -251,13 +253,14 @@ export default function ProfilePage() {
         experience: applicationData.experience,
         motivation: applicationData.motivation,
         portfolio_url: applicationData.portfolio_url || null,
+        attachment_urls: applicationData.attachment_urls.length > 0 ? applicationData.attachment_urls : null,
         status: 'pending',
       });
 
       if (error) throw error;
 
       setMembershipStatus('pending');
-      toast.success('Application submitted! Please wait for admin approval.');
+      toast.success('Pendaftaran terkirim! Mohon tunggu persetujuan admin.');
 
       // Refresh application status
       const { data } = await supabase
@@ -305,7 +308,7 @@ export default function ProfilePage() {
         <div className="animate-spin w-8 h-8 border-4 border-electric-500 border-t-transparent rounded-full" />
       </div>
     );
-  }
+  } 
 
   // Not logged in - show auth form
   if (!user) {
@@ -318,28 +321,28 @@ export default function ProfilePage() {
                 <User className="w-8 h-8 text-electric-600" />
               </div>
               <CardTitle className="text-2xl font-heading">
-                {authMode === 'signin' ? 'Welcome Back' : 'Join KROENG'}
+                {authMode === 'signin' ? 'Selamat Datang Kembali' : 'Bergabung dengan KROENG'}
               </CardTitle>
               <p className="text-gray-500 text-sm mt-2">
                 {authMode === 'signin'
-                  ? 'Sign in to access your profile'
-                  : 'Create an account to join the community'}
+                  ? 'Masuk untuk mengakses profil Anda'
+                  : 'Buat akun untuk bergabung dengan komunitas'}
               </p>
             </CardHeader>
             <CardContent>
               <Tabs value={authMode} onValueChange={(v) => setAuthMode(v as 'signin' | 'signup')}>
                 <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="signin">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                  <TabsTrigger value="signin">Masuk</TabsTrigger>
+                  <TabsTrigger value="signup">Daftar</TabsTrigger>
                 </TabsList>
 
                 <form onSubmit={handleAuth} className="space-y-4">
                   <TabsContent value="signup" className="mt-0">
                     <div className="space-y-2">
-                      <Label htmlFor="fullName">Full Name</Label>
+                      <Label htmlFor="fullName">Nama Lengkap</Label>
                       <Input
                         id="fullName"
-                        placeholder="Enter your full name"
+                        placeholder="Masukkan nama lengkap"
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                         required={authMode === 'signup'}
@@ -352,7 +355,7 @@ export default function ProfilePage() {
                     <Input
                       id="email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="Masukkan email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       required
@@ -360,11 +363,11 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">Kata Sandi</Label>
                     <Input
                       id="password"
                       type="password"
-                      placeholder="Enter your password"
+                      placeholder="Masukkan kata sandi"
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       required
@@ -380,19 +383,19 @@ export default function ProfilePage() {
                     {authLoading ? (
                       <span className="flex items-center gap-2">
                         <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
-                        Loading...
+                        Memuat...
                       </span>
                     ) : authMode === 'signin' ? (
-                      'Sign In'
+                      'Masuk'
                     ) : (
-                      'Create Account'
+                      'Buat Akun'
                     )}
                   </Button>
                 </form>
               </Tabs>
 
               <p className="text-center text-sm text-gray-500 mt-6">
-                By continuing, you agree to our terms of service and privacy policy.
+                Dengan melanjutkan, Anda menyetujui ketentuan layanan dan kebijakan privasi kami.
               </p>
             </CardContent>
           </Card>
@@ -425,10 +428,10 @@ export default function ProfilePage() {
           <Alert className="bg-electric-50 border-electric-200">
             <Shield className="h-4 w-4 text-electric-600" />
             <AlertDescription className="flex items-center justify-between">
-              <span>You have admin privileges.</span>
+              <span>Anda memiliki akses admin.</span>
               <Link href="/admin">
                 <Button size="sm" className="bg-electric-500 hover:bg-electric-600">
-                  Go to Admin Panel
+                  Buka Panel Admin
                 </Button>
               </Link>
             </AlertDescription>
@@ -454,7 +457,7 @@ export default function ProfilePage() {
                 />
                 <div>
                   <CardTitle className="text-2xl font-heading">
-                    {profile?.full_name || 'User'}
+                    {profile?.full_name || 'Pengguna'}
                   </CardTitle>
                   <p className="text-gray-500">{user.email}</p>
                   <div className="flex items-center gap-2 mt-1">
@@ -465,7 +468,7 @@ export default function ProfilePage() {
                           : 'bg-gray-100 text-gray-700'
                       }
                     >
-                      {profile?.role || 'user'}
+                      {profile?.role === 'admin' ? 'admin' : profile?.role === 'user' ? 'pengguna' : 'tamu'}
                     </Badge>
                     {membershipStatus === 'approved' && (
                       <Badge
@@ -476,11 +479,11 @@ export default function ProfilePage() {
                         }
                         className={divisionColor ? 'border' : 'bg-green-100 text-green-700'}
                       >
-                        {memberApplication?.division?.name ?? 'Member'}
+                        {memberApplication?.division?.name ?? 'Anggota'}
                       </Badge>
                     )}
                     {membershipStatus === 'pending' && (
-                      <Badge className="bg-yellow-100 text-yellow-700">Pending</Badge>
+                      <Badge className="bg-yellow-100 text-yellow-700">Menunggu Review</Badge>
                     )}
                   </div>
                 </div>
@@ -490,7 +493,7 @@ export default function ProfilePage() {
                   <>
                     <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
                       <X className="w-4 h-4 mr-1" />
-                      Cancel
+                      Batal
                     </Button>
                     <Button
                       size="sm"
@@ -498,13 +501,13 @@ export default function ProfilePage() {
                       className="bg-electric-500 hover:bg-electric-600"
                     >
                       <Save className="w-4 h-4 mr-1" />
-                      Save
+                      Simpan
                     </Button>
                   </>
                 ) : (
                   <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
                     <Edit2 className="w-4 h-4 mr-1" />
-                    Edit Profile
+                    Edit Profil
                   </Button>
                 )}
               </div>
@@ -515,7 +518,7 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 text-gray-600">
                   <User className="w-4 h-4" />
-                  Full Name
+                  Nama Lengkap
                 </Label>
                 {isEditing ? (
                   <Input
@@ -544,7 +547,7 @@ export default function ProfilePage() {
                   <Input
                     value={profileData.nim}
                     onChange={(e) => setProfileData({ ...profileData, nim: e.target.value })}
-                    placeholder="e.g., 2104101010xxx"
+                    placeholder="Contoh: 2104101010xxx"
                   />
                 ) : (
                   <p className="text-navy-900 font-medium">{profile?.nim || '-'}</p>
@@ -554,13 +557,13 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 text-gray-600">
                   <Building2 className="w-4 h-4" />
-                  Division
+                  Divisi
                 </Label>
                 {isEditing ? (
                   <Input
                     value={profileData.division}
                     onChange={(e) => setProfileData({ ...profileData, division: e.target.value })}
-                    placeholder="e.g., Programmer, Electrical"
+                    placeholder="Contoh: Programmer, Electrical"
                   />
                 ) : (
                   <p className="text-navy-900 font-medium">{profile?.division || '-'}</p>
@@ -570,13 +573,13 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 text-gray-600">
                   <Briefcase className="w-4 h-4" />
-                  Position
+                  Jabatan
                 </Label>
                 {isEditing ? (
                   <Input
                     value={profileData.position}
                     onChange={(e) => setProfileData({ ...profileData, position: e.target.value })}
-                    placeholder="e.g., Member, Lead"
+                    placeholder="Contoh: Anggota, Ketua"
                   />
                 ) : (
                   <p className="text-navy-900 font-medium">{profile?.position || '-'}</p>
@@ -590,11 +593,11 @@ export default function ProfilePage() {
                 <Textarea
                   value={profileData.bio}
                   onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-                  placeholder="Tell us about yourself..."
+                  placeholder="Ceritakan tentang diri Anda..."
                   rows={4}
                 />
               ) : (
-                <p className="text-navy-900">{profile?.bio || 'No bio yet.'}</p>
+                <p className="text-navy-900">{profile?.bio || 'Belum ada bio.'}</p>
               )}
             </div>
 
@@ -608,7 +611,7 @@ export default function ProfilePage() {
                 }}
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
+                Keluar
               </Button>
             </div>
           </CardContent>
@@ -619,10 +622,10 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle className="text-xl font-heading flex items-center gap-2">
               <User className="w-5 h-5 text-electric-600" />
-              Membership Status
+              Status Keanggotaan
             </CardTitle>
             <CardDescription>
-              Become an official KROENG member to access exclusive content and join activities.
+              Daftar sebagai anggota resmi KROENG untuk mengakses konten eksklusif dan ikut serta dalam kegiatan komunitas.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -634,13 +637,13 @@ export default function ProfilePage() {
                     <CheckCircle2 className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-green-800">You are a KROENG Member!</h3>
+                    <h3 className="font-semibold text-green-800">Anda adalah Anggota KROENG!</h3>
                     <p className="text-green-700 text-sm mt-1">
-                      Division: {memberApplication.division?.name || 'N/A'}
+                      Divisi: {memberApplication.division?.name || '-'}
                     </p>
-                    <p className="text-green-700 text-sm">Position: {memberApplication.position}</p>
+                    <p className="text-green-700 text-sm">Jabatan: {memberApplication.position}</p>
                     {memberApplication.year && (
-                      <p className="text-green-700 text-sm">Year: {memberApplication.year}</p>
+                      <p className="text-green-700 text-sm">Angkatan: {memberApplication.year}</p>
                     )}
                   </div>
                 </div>
@@ -655,12 +658,12 @@ export default function ProfilePage() {
                     <Clock className="w-6 h-6 text-yellow-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-yellow-800">Application Pending</h3>
+                    <h3 className="font-semibold text-yellow-800">Pendaftaran Menunggu Review</h3>
                     <p className="text-yellow-700 text-sm mt-1">
-                      Your membership application is being reviewed by the admin team.
+                      Pendaftaran anggota Anda sedang ditinjau oleh tim admin.
                     </p>
                     <p className="text-yellow-700 text-sm mt-2">
-                      Applied for: {memberApplication.division?.name || 'N/A'} Division
+                      Divisi yang dipilih: {memberApplication.division?.name || '-'}
                     </p>
                   </div>
                 </div>
@@ -675,13 +678,13 @@ export default function ProfilePage() {
                     <XCircle className="w-6 h-6 text-red-600" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-red-800">Application Rejected</h3>
+                    <h3 className="font-semibold text-red-800">Pendaftaran Ditolak</h3>
                     <p className="text-red-700 text-sm mt-1">
-                      Unfortunately, your application was not approved.
+                      Mohon maaf, pendaftaran Anda belum disetujui.
                     </p>
                     {memberApplication.rejected_reason && (
                       <p className="text-red-700 text-sm mt-2">
-                        Reason: {memberApplication.rejected_reason}
+                        Alasan: {memberApplication.rejected_reason}
                       </p>
                     )}
                     <Button
@@ -689,7 +692,7 @@ export default function ProfilePage() {
                       className="mt-4 bg-red-600 hover:bg-red-700"
                       size="sm"
                     >
-                      Apply Again
+                      Daftar Ulang
                     </Button>
                   </div>
                 </div>
@@ -702,20 +705,20 @@ export default function ProfilePage() {
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Fill out this form to apply for KROENG membership. Your application will be
-                    reviewed by the admin team.
+                    Isi formulir ini untuk mendaftar sebagai anggota KROENG. Pendaftaran Anda akan
+                    ditinjau oleh tim admin.
                   </AlertDescription>
                 </Alert>
 
-                {/* Section 1: Contact Information */}
+                {/* Bagian 1: Informasi Kontak */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-navy-900 border-b pb-2">
-                    Contact Information
+                    Informasi Kontak
                   </h3>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="phone">
-                        Phone Number <span className="text-red-500">*</span>
+                        Nomor Telepon <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="phone"
@@ -730,7 +733,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="whatsapp">
-                        WhatsApp Number <span className="text-red-500">*</span>
+                        Nomor WhatsApp <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="whatsapp"
@@ -744,39 +747,39 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="nim">NIM (Student ID)</Label>
+                      <Label htmlFor="nim">NIM</Label>
                       <Input
                         id="nim"
                         value={applicationData.nim}
                         onChange={(e) =>
                           setApplicationData({ ...applicationData, nim: e.target.value })
                         }
-                        placeholder="e.g., 2104101010xxx"
+                        placeholder="Contoh: 2104101010xxx"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="year">Year/Angkatan</Label>
+                      <Label htmlFor="year">Angkatan</Label>
                       <Input
                         id="year"
                         value={applicationData.year}
                         onChange={(e) =>
                           setApplicationData({ ...applicationData, year: e.target.value })
                         }
-                        placeholder="e.g., 2024"
+                        placeholder="Contoh: 2024"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Section 2: Division Selection */}
+                {/* Bagian 2: Pemilihan Divisi */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-navy-900 border-b pb-2">
-                    Division Selection
+                    Pemilihan Divisi
                   </h3>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="division">
-                        Division <span className="text-red-500">*</span>
+                        Divisi <span className="text-red-500">*</span>
                       </Label>
                       <Select
                         value={applicationData.division_id}
@@ -785,7 +788,7 @@ export default function ProfilePage() {
                         }
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select division" />
+                          <SelectValue placeholder="Pilih divisi" />
                         </SelectTrigger>
                         <SelectContent>
                           {divisions.map((division) => (
@@ -797,7 +800,7 @@ export default function ProfilePage() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="position">Position</Label>
+                      <Label htmlFor="position">Jabatan</Label>
                       <Select
                         value={applicationData.position}
                         onValueChange={(value) =>
@@ -805,17 +808,17 @@ export default function ProfilePage() {
                         }
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select position" />
+                          <SelectValue placeholder="Pilih jabatan" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Member">Member</SelectItem>
+                          <SelectItem value="Anggota">Anggota</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="division_reason">
-                      Why did you choose this division? <span className="text-red-500">*</span>
+                      Mengapa Anda memilih divisi ini? <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
                       id="division_reason"
@@ -823,31 +826,31 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setApplicationData({ ...applicationData, division_reason: e.target.value })
                       }
-                      placeholder="Explain why you're interested in this division and what you hope to contribute..."
+                      placeholder="Jelaskan kenapa Anda tertarik pada divisi ini dan kontribusi apa yang ingin Anda berikan..."
                       rows={3}
                       required
                     />
                   </div>
                 </div>
 
-                {/* Section 3: Skills */}
+                {/* Bagian 3: Keahlian */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-navy-900 border-b pb-2">
-                    Skills & Abilities
+                    Keahlian
                   </h3>
                   <div className="space-y-2">
                     <Label>
-                      Your Skills <span className="text-red-500">*</span>
+                      Keahlian Anda <span className="text-red-500">*</span>
                     </Label>
                     <p className="text-sm text-gray-500">
-                      Add skills relevant to your chosen division (e.g., Arduino, Python, AutoCAD,
-                      3D Modeling, PCB Design, etc.)
+                      Tambahkan keahlian yang relevan dengan divisi yang dipilih (contoh: Arduino,
+                      Python, AutoCAD, 3D Modeling, PCB Design, dll.)
                     </p>
                     <div className="flex gap-2">
                       <Input
                         value={skillInput}
                         onChange={(e) => setSkillInput(e.target.value)}
-                        placeholder="Type a skill and press Add"
+                        placeholder="Ketik keahlian lalu tekan Tambah"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
@@ -856,7 +859,7 @@ export default function ProfilePage() {
                         }}
                       />
                       <Button type="button" onClick={addSkill} variant="secondary">
-                        Add
+                        Tambah
                       </Button>
                     </div>
                     {applicationData.skills.length > 0 && (
@@ -876,18 +879,18 @@ export default function ProfilePage() {
                     )}
                     {applicationData.skills.length === 0 && (
                       <p className="text-sm text-yellow-600 mt-2">
-                        Please add at least one skill
+                        Mohon tambahkan minimal satu keahlian
                       </p>
                     )}
                   </div>
                 </div>
 
-                {/* Section 4: Experience */}
+                {/* Bagian 4: Pengalaman */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-navy-900 border-b pb-2">Experience</h3>
+                  <h3 className="text-lg font-semibold text-navy-900 border-b pb-2">Pengalaman</h3>
                   <div className="space-y-2">
                     <Label htmlFor="experience">
-                      Previous Experience (Projects, Competitions, Organizations)
+                      Pengalaman Sebelumnya (Proyek, Kompetisi, Organisasi)
                     </Label>
                     <Textarea
                       id="experience"
@@ -895,12 +898,12 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setApplicationData({ ...applicationData, experience: e.target.value })
                       }
-                      placeholder="Tell us about your previous experience in robotics, programming, electronics, or any relevant field. Include any competitions, projects, or organizations you've been part of..."
+                      placeholder="Ceritakan pengalaman Anda di bidang robotika, pemrograman, elektronik, atau bidang relevan lainnya. Sertakan kompetisi, proyek, atau organisasi yang pernah Anda ikuti..."
                       rows={4}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="portfolio_url">Portfolio Link (Optional)</Label>
+                    <Label htmlFor="portfolio_url">Tautan Portfolio (Opsional)</Label>
                     <Input
                       id="portfolio_url"
                       type="url"
@@ -908,24 +911,44 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setApplicationData({ ...applicationData, portfolio_url: e.target.value })
                       }
-                      placeholder="https://github.com/username or https://yourportfolio.com"
+                      placeholder="https://github.com/username atau https://portfolio-anda.com"
                     />
                   </div>
                 </div>
 
-                {/* Section 5: Motivation */}
+                {/* Bagian 5: Motivasi */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-navy-900 border-b pb-2">Motivation</h3>
+                  <h3 className="text-lg font-semibold text-navy-900 border-b pb-2">Motivasi</h3>
                   <div className="space-y-2">
-                    <Label htmlFor="motivation">Why do you want to join KROENG?</Label>
+                    <Label htmlFor="motivation">Mengapa Anda ingin bergabung dengan KROENG?</Label>
                     <Textarea
                       id="motivation"
                       value={applicationData.motivation}
                       onChange={(e) =>
                         setApplicationData({ ...applicationData, motivation: e.target.value })
                       }
-                      placeholder="Share your motivation for joining KROENG and what you hope to achieve..."
+                      placeholder="Ceritakan motivasi Anda bergabung dengan KROENG dan tujuan yang ingin dicapai..."
                       rows={4}
+                    />
+                  </div>
+                </div>
+
+                {/* Bagian 6: Lampiran */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-navy-900 border-b pb-2">Lampiran</h3>
+                  <div className="space-y-2">
+                    <Label>Lampiran (Opsional)</Label>
+                    <p className="text-sm text-gray-500">
+                      Lampirkan CV, sertifikat, atau dokumen pendukung lainnya. Maksimal 5 file —
+                      hanya menerima gambar (JPG/PNG/WebP) atau PDF, maks. 10 MB per file.
+                    </p>
+                    <FileUpload
+                      value={applicationData.attachment_urls}
+                      onChange={(urls) =>
+                        setApplicationData({ ...applicationData, attachment_urls: urls })
+                      }
+                      disabled={applyingMembership}
+                      maxFiles={5}
                     />
                   </div>
                 </div>
@@ -945,10 +968,10 @@ export default function ProfilePage() {
                   {applyingMembership ? (
                     <span className="flex items-center gap-2">
                       <span className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
-                      Submitting Application...
+                      Mengirim Pendaftaran...
                     </span>
                   ) : (
-                    'Submit Application'
+                    'Kirim Pendaftaran'
                   )}
                 </Button>
               </form>
