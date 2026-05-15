@@ -137,14 +137,6 @@ export default function HomePage() {
         <CTASection />
       </Suspense>
 
-      <Suspense fallback={<SectionSkeleton />}>
-        <LatestNewsSection />
-      </Suspense>
-
-      <Suspense fallback={<SectionSkeleton />}>
-        <LatestKnowledgeSection />
-      </Suspense>
-
     </>
   );
 }

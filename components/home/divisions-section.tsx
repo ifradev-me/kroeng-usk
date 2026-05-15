@@ -73,21 +73,21 @@ export async function DivisionsSection() {
                       <CardContent className="p-4 sm:p-6">
                         <div className="flex items-start gap-3 sm:gap-4">
                           <div
-                            className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform"
+                            className="flex-shrink-0 w-11 h-11 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-white group-hover:scale-110 transition-transform"
                             style={{ background: theme.gradient }}
                             aria-hidden="true"
                           >
-                            <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
+                            <Icon className="w-5 h-5 sm:w-7 sm:h-7" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-base sm:text-lg md:text-xl font-heading font-semibold text-navy-900 mb-1 sm:mb-2 flex items-center gap-2">
-                              <span className="truncate">{division.name}</span>
+                            <h3 className="text-base sm:text-lg md:text-xl font-heading font-semibold text-navy-900 mb-1 sm:mb-2 flex items-start gap-2 leading-snug">
+                              <span className="break-words flex-1">{division.name}</span>
                               <ArrowRight
-                                className="w-4 h-4 flex-shrink-0 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-electric-500"
+                                className="w-4 h-4 flex-shrink-0 mt-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-electric-500"
                                 aria-hidden="true"
                               />
                             </h3>
-                            <p className="text-gray-600 text-sm sm:text-base leading-relaxed line-clamp-2">
+                            <p className="text-gray-600 text-xs sm:text-base leading-relaxed line-clamp-3 sm:line-clamp-2">
                               {division.description || 'No description available.'}
                             </p>
                           </div>
