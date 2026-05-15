@@ -37,6 +37,7 @@ import { useAuth } from '@/lib/auth-context';
 import { supabase, Division } from '@/lib/supabase';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { SingleFileUpload } from '@/components/ui/single-file-upload';
+import { FileUpload } from '@/components/ui/file-upload';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -93,7 +94,7 @@ export default function ProfilePage() {
     // Lampiran wajib
     formulir_url: '',
     motivation_letter_url: '',
-    transkrip_url: '',
+    transkrip_urls: [] as string[],
     photo_url: '',
   });
   const [skillInput, setSkillInput] = useState('');
@@ -237,7 +238,7 @@ export default function ProfilePage() {
     if (
       !applicationData.formulir_url ||
       !applicationData.motivation_letter_url ||
-      !applicationData.transkrip_url ||
+      applicationData.transkrip_urls.length === 0 ||
       !applicationData.photo_url
     ) {
       toast.error('Mohon lengkapi semua lampiran wajib (Formulir, Surat Motivasi, Transkrip Nilai, Pasfoto)');
@@ -264,7 +265,7 @@ export default function ProfilePage() {
         portfolio_url: applicationData.portfolio_url || null,
         formulir_url: applicationData.formulir_url,
         motivation_letter_url: applicationData.motivation_letter_url,
-        transkrip_url: applicationData.transkrip_url,
+        transkrip_urls: applicationData.transkrip_urls,
         photo_url: applicationData.photo_url,
         status: 'pending',
       });
@@ -982,20 +983,6 @@ export default function ProfilePage() {
 
                     <div className="space-y-2">
                       <Label>
-                        Transkrip Nilai (PDF) <span className="text-red-500">*</span>
-                      </Label>
-                      <SingleFileUpload
-                        accept="pdf"
-                        value={applicationData.transkrip_url || null}
-                        onChange={(url) =>
-                          setApplicationData({ ...applicationData, transkrip_url: url || '' })
-                        }
-                        disabled={applyingMembership}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>
                         Pasfoto (JPG/PNG/WebP) <span className="text-red-500">*</span>
                       </Label>
                       <SingleFileUpload
@@ -1007,6 +994,25 @@ export default function ProfilePage() {
                         disabled={applyingMembership}
                       />
                     </div>
+                  </div>
+
+                  {/* Transkrip Nilai — bisa lebih dari 1 PDF */}
+                  <div className="space-y-2">
+                    <Label>
+                      Transkrip Nilai (PDF) <span className="text-red-500">*</span>
+                    </Label>
+                    <p className="text-xs text-gray-500">
+                      Bisa upload lebih dari satu PDF (mis. transkrip per semester). Minimal 1 file.
+                    </p>
+                    <FileUpload
+                      accept="pdf"
+                      value={applicationData.transkrip_urls}
+                      onChange={(urls) =>
+                        setApplicationData({ ...applicationData, transkrip_urls: urls })
+                      }
+                      disabled={applyingMembership}
+                      maxFiles={10}
+                    />
                   </div>
                 </div>
 
@@ -1021,7 +1027,7 @@ export default function ProfilePage() {
                     !applicationData.division_reason ||
                     !applicationData.formulir_url ||
                     !applicationData.motivation_letter_url ||
-                    !applicationData.transkrip_url ||
+                    applicationData.transkrip_urls.length === 0 ||
                     !applicationData.photo_url
                   }
                 >

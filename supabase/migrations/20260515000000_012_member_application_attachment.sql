@@ -1,11 +1,11 @@
 /*
   # Member Application Required Attachments
 
-  1. Add 4 lampiran columns ke member_applications (semua wajib di sisi client):
-     - formulir_url           text — PDF formulir pendaftaran
-     - motivation_letter_url  text — PDF surat motivasi
-     - transkrip_url          text — PDF transkrip nilai
-     - photo_url              text — pasfoto (gambar)
+  1. Add lampiran columns ke member_applications (semua wajib di sisi client):
+     - formulir_url           text     — PDF formulir pendaftaran
+     - motivation_letter_url  text     — PDF surat motivasi
+     - transkrip_urls         text[]   — daftar PDF transkrip nilai (bisa >1, mis. per semester)
+     - photo_url              text     — pasfoto (gambar)
 
   2. Create `attachments` storage bucket
      - Public read
@@ -21,12 +21,13 @@
 -- Cleanup nama kolom lama (kalau migration sebelumnya pernah jalan)
 ALTER TABLE member_applications
   DROP COLUMN IF EXISTS attachment_url,
-  DROP COLUMN IF EXISTS attachment_urls;
+  DROP COLUMN IF EXISTS attachment_urls,
+  DROP COLUMN IF EXISTS transkrip_url;
 
 ALTER TABLE member_applications
   ADD COLUMN IF NOT EXISTS formulir_url          text,
   ADD COLUMN IF NOT EXISTS motivation_letter_url text,
-  ADD COLUMN IF NOT EXISTS transkrip_url         text,
+  ADD COLUMN IF NOT EXISTS transkrip_urls        text[] DEFAULT '{}',
   ADD COLUMN IF NOT EXISTS photo_url             text;
 
 

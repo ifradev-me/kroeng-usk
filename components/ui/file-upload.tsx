@@ -5,9 +5,12 @@ import { Upload, FileText, Image as ImageIcon, Loader2, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-const ACCEPTED_EXT = '.jpg,.jpeg,.png,.webp,.pdf';
+const PDF_TYPES = ['application/pdf'];
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const ALL_TYPES = [...IMAGE_TYPES, ...PDF_TYPES];
 const MAX_SIZE = 10 * 1024 * 1024; // 10 MB per file
+
+type AcceptKind = 'pdf' | 'image' | 'both';
 
 interface FileUploadProps {
   /** Current attachment URLs */
@@ -22,6 +25,8 @@ interface FileUploadProps {
   disabled?: boolean;
   /** Max files allowed. Default 5 */
   maxFiles?: number;
+  /** Allowed file type. Default 'both' */
+  accept?: AcceptKind;
 }
 
 function getFileNameFromUrl(url: string): string {
@@ -43,10 +48,22 @@ export function FileUpload({
   bucket = 'attachments',
   disabled = false,
   maxFiles = 5,
+  accept = 'both',
 }: FileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+
+  const acceptedTypes =
+    accept === 'pdf' ? PDF_TYPES : accept === 'image' ? IMAGE_TYPES : ALL_TYPES;
+  const acceptedExt =
+    accept === 'pdf'
+      ? '.pdf'
+      : accept === 'image'
+      ? '.jpg,.jpeg,.png,.webp'
+      : '.jpg,.jpeg,.png,.webp,.pdf';
+  const acceptLabel =
+    accept === 'pdf' ? 'PDF' : accept === 'image' ? 'JPG, PNG, atau WebP' : 'JPG, PNG, WebP, atau PDF';
 
   const remainingSlots = Math.max(0, maxFiles - value.length);
   const isFull = remainingSlots === 0;
@@ -66,8 +83,8 @@ export function FileUpload({
       // Validate each file first
       const valid: File[] = [];
       for (const file of toUpload) {
-        if (!ACCEPTED_TYPES.includes(file.type)) {
-          toast.error(`"${file.name}" bukan format gambar atau PDF`);
+        if (!acceptedTypes.includes(file.type)) {
+          toast.error(`"${file.name}" bukan format ${acceptLabel}`);
           continue;
         }
         if (file.size > MAX_SIZE) {
@@ -121,7 +138,7 @@ export function FileUpload({
         if (inputRef.current) inputRef.current.value = '';
       }
     },
-    [folder, bucket, onChange, value, remainingSlots, maxFiles]
+    [folder, bucket, onChange, value, remainingSlots, maxFiles, acceptedTypes, acceptLabel]
   );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -215,7 +232,7 @@ export function FileUpload({
             ref={inputRef}
             type="file"
             multiple
-            accept={ACCEPTED_EXT}
+            accept={acceptedExt}
             className="hidden"
             onChange={handleFileChange}
             disabled={disabled || uploading}
@@ -247,7 +264,7 @@ export function FileUpload({
                 </p>
               )}
               <p className="text-[11px] sm:text-xs text-gray-400 mt-1.5 sm:mt-2">
-                JPG, PNG, WebP, atau PDF · maks. 10 MB per file · sisa{' '}
+                {acceptLabel} · maks. 10 MB per file · sisa{' '}
                 <span className="font-semibold text-electric-600">{remainingSlots}</span> dari{' '}
                 {maxFiles} file
               </p>

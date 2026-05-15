@@ -83,7 +83,7 @@ type MemberApplication = {
   portfolio_url: string | null;
   formulir_url: string | null;
   motivation_letter_url: string | null;
-  transkrip_url: string | null;
+  transkrip_urls: string[] | null;
   photo_url: string | null;
   status: 'pending' | 'approved' | 'rejected';
   rejected_reason: string | null;
@@ -1007,7 +1007,8 @@ export default function AdminMembersPage() {
               {/* Lampiran Wajib */}
               {(selectedApplication.formulir_url ||
                 selectedApplication.motivation_letter_url ||
-                selectedApplication.transkrip_url ||
+                (selectedApplication.transkrip_urls &&
+                  selectedApplication.transkrip_urls.length > 0) ||
                 selectedApplication.photo_url) && (
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3">Lampiran</h4>
@@ -1023,15 +1024,34 @@ export default function AdminMembersPage() {
                       kind="pdf"
                     />
                     <AttachmentRow
-                      label="Transkrip Nilai"
-                      url={selectedApplication.transkrip_url}
-                      kind="pdf"
-                    />
-                    <AttachmentRow
                       label="Pasfoto"
                       url={selectedApplication.photo_url}
                       kind="image"
                     />
+                  </div>
+
+                  {/* Transkrip Nilai — bisa banyak */}
+                  <div className="mt-3">
+                    <Label className="text-gray-700 text-xs font-semibold uppercase tracking-wide">
+                      Transkrip Nilai
+                    </Label>
+                    {selectedApplication.transkrip_urls &&
+                    selectedApplication.transkrip_urls.length > 0 ? (
+                      <div className="space-y-2 mt-2">
+                        {selectedApplication.transkrip_urls.map((url, i) => (
+                          <AttachmentRow
+                            key={url}
+                            label={`Transkrip ${i + 1}`}
+                            url={url}
+                            kind="pdf"
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="mt-2">
+                        <AttachmentRow label="Transkrip Nilai" url={null} kind="pdf" />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

@@ -154,7 +154,7 @@ export type MemberApplication = {
   // Lampiran wajib
   formulir_url: string | null;
   motivation_letter_url: string | null;
-  transkrip_url: string | null;
+  transkrip_urls: string[] | null;
   photo_url: string | null;
   
   // Status
