@@ -150,7 +150,12 @@ export type MemberApplication = {
   experience: string | null;
   motivation: string | null;
   portfolio_url: string | null;
-  attachment_urls: string[] | null;
+
+  // Lampiran wajib
+  formulir_url: string | null;
+  motivation_letter_url: string | null;
+  transkrip_url: string | null;
+  photo_url: string | null;
   
   // Status
   status: 'pending' | 'approved' | 'rejected';

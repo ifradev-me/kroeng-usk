@@ -36,7 +36,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth-context';
 import { supabase, Division } from '@/lib/supabase';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
-import { FileUpload } from '@/components/ui/file-upload';
+import { SingleFileUpload } from '@/components/ui/single-file-upload';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
@@ -90,7 +90,11 @@ export default function ProfilePage() {
     experience: '',
     motivation: '',
     portfolio_url: '',
-    attachment_urls: [] as string[],
+    // Lampiran wajib
+    formulir_url: '',
+    motivation_letter_url: '',
+    transkrip_url: '',
+    photo_url: '',
   });
   const [skillInput, setSkillInput] = useState('');
 
@@ -230,8 +234,13 @@ export default function ProfilePage() {
       toast.error('Mohon jelaskan alasan memilih divisi ini');
       return;
     }
-    if (applicationData.skills.length === 0) {
-      toast.error('Mohon tambahkan minimal satu skill');
+    if (
+      !applicationData.formulir_url ||
+      !applicationData.motivation_letter_url ||
+      !applicationData.transkrip_url ||
+      !applicationData.photo_url
+    ) {
+      toast.error('Mohon lengkapi semua lampiran wajib (Formulir, Surat Motivasi, Transkrip Nilai, Pasfoto)');
       return;
     }
 
@@ -253,7 +262,10 @@ export default function ProfilePage() {
         experience: applicationData.experience,
         motivation: applicationData.motivation,
         portfolio_url: applicationData.portfolio_url || null,
-        attachment_urls: applicationData.attachment_urls.length > 0 ? applicationData.attachment_urls : null,
+        formulir_url: applicationData.formulir_url,
+        motivation_letter_url: applicationData.motivation_letter_url,
+        transkrip_url: applicationData.transkrip_url,
+        photo_url: applicationData.photo_url,
         status: 'pending',
       });
 
@@ -839,9 +851,7 @@ export default function ProfilePage() {
                     Keahlian
                   </h3>
                   <div className="space-y-2">
-                    <Label>
-                      Keahlian Anda <span className="text-red-500">*</span>
-                    </Label>
+                    <Label>Keahlian Anda (Opsional)</Label>
                     <p className="text-sm text-gray-500">
                       Tambahkan keahlian yang relevan dengan divisi yang dipilih (contoh: Arduino,
                       Python, AutoCAD, 3D Modeling, PCB Design, dll.)
@@ -876,11 +886,6 @@ export default function ProfilePage() {
                           </Badge>
                         ))}
                       </div>
-                    )}
-                    {applicationData.skills.length === 0 && (
-                      <p className="text-sm text-yellow-600 mt-2">
-                        Mohon tambahkan minimal satu keahlian
-                      </p>
                     )}
                   </div>
                 </div>
@@ -933,23 +938,75 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Bagian 6: Lampiran */}
+                {/* Bagian 6: Lampiran Wajib */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-navy-900 border-b pb-2">Lampiran</h3>
-                  <div className="space-y-2">
-                    <Label>Lampiran (Opsional)</Label>
-                    <p className="text-sm text-gray-500">
-                      Lampirkan CV, sertifikat, atau dokumen pendukung lainnya. Maksimal 5 file —
-                      hanya menerima gambar (JPG/PNG/WebP) atau PDF, maks. 10 MB per file.
-                    </p>
-                    <FileUpload
-                      value={applicationData.attachment_urls}
-                      onChange={(urls) =>
-                        setApplicationData({ ...applicationData, attachment_urls: urls })
-                      }
-                      disabled={applyingMembership}
-                      maxFiles={5}
-                    />
+                  <h3 className="text-lg font-semibold text-navy-900 border-b pb-2">
+                    Lampiran Wajib
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Semua lampiran di bawah ini wajib diisi. Maksimal 10 MB per file.
+                  </p>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>
+                        Formulir Pendaftaran (PDF) <span className="text-red-500">*</span>
+                      </Label>
+                      <SingleFileUpload
+                        accept="pdf"
+                        value={applicationData.formulir_url || null}
+                        onChange={(url) =>
+                          setApplicationData({ ...applicationData, formulir_url: url || '' })
+                        }
+                        disabled={applyingMembership}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>
+                        Surat Motivasi / Motivation Letter (PDF){' '}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <SingleFileUpload
+                        accept="pdf"
+                        value={applicationData.motivation_letter_url || null}
+                        onChange={(url) =>
+                          setApplicationData({
+                            ...applicationData,
+                            motivation_letter_url: url || '',
+                          })
+                        }
+                        disabled={applyingMembership}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>
+                        Transkrip Nilai (PDF) <span className="text-red-500">*</span>
+                      </Label>
+                      <SingleFileUpload
+                        accept="pdf"
+                        value={applicationData.transkrip_url || null}
+                        onChange={(url) =>
+                          setApplicationData({ ...applicationData, transkrip_url: url || '' })
+                        }
+                        disabled={applyingMembership}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>
+                        Pasfoto (JPG/PNG/WebP) <span className="text-red-500">*</span>
+                      </Label>
+                      <SingleFileUpload
+                        accept="image"
+                        value={applicationData.photo_url || null}
+                        onChange={(url) =>
+                          setApplicationData({ ...applicationData, photo_url: url || '' })
+                        }
+                        disabled={applyingMembership}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -962,7 +1019,10 @@ export default function ProfilePage() {
                     !applicationData.phone ||
                     !applicationData.whatsapp ||
                     !applicationData.division_reason ||
-                    applicationData.skills.length === 0
+                    !applicationData.formulir_url ||
+                    !applicationData.motivation_letter_url ||
+                    !applicationData.transkrip_url ||
+                    !applicationData.photo_url
                   }
                 >
                   {applyingMembership ? (

@@ -1,9 +1,11 @@
 /*
-  # Member Application Attachments
+  # Member Application Required Attachments
 
-  1. Add `attachment_urls` column (text[]) to member_applications
-     untuk menyimpan lampiran (CV, sertifikat, portfolio PDF, dll).
-     Maksimal 5 file per pendaftaran (di-enforce di sisi client).
+  1. Add 4 lampiran columns ke member_applications (semua wajib di sisi client):
+     - formulir_url           text — PDF formulir pendaftaran
+     - motivation_letter_url  text — PDF surat motivasi
+     - transkrip_url          text — PDF transkrip nilai
+     - photo_url              text — pasfoto (gambar)
 
   2. Create `attachments` storage bucket
      - Public read
@@ -13,10 +15,19 @@
 */
 
 -- ============================================================================
--- COLUMN: attachment_urls di member_applications
+-- COLUMNS: lampiran wajib di member_applications
 -- ============================================================================
+
+-- Cleanup nama kolom lama (kalau migration sebelumnya pernah jalan)
 ALTER TABLE member_applications
-  ADD COLUMN IF NOT EXISTS attachment_urls text[] DEFAULT '{}';
+  DROP COLUMN IF EXISTS attachment_url,
+  DROP COLUMN IF EXISTS attachment_urls;
+
+ALTER TABLE member_applications
+  ADD COLUMN IF NOT EXISTS formulir_url          text,
+  ADD COLUMN IF NOT EXISTS motivation_letter_url text,
+  ADD COLUMN IF NOT EXISTS transkrip_url         text,
+  ADD COLUMN IF NOT EXISTS photo_url             text;
 
 
 -- ============================================================================
@@ -43,12 +54,10 @@ DROP POLICY IF EXISTS "Public can view attachments"           ON storage.objects
 DROP POLICY IF EXISTS "Authenticated can upload applications" ON storage.objects;
 DROP POLICY IF EXISTS "Admins can delete attachments"         ON storage.objects;
 
--- Public read
 CREATE POLICY "Public can view attachments"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'attachments');
 
--- User authenticated boleh upload ke folder applications/
 CREATE POLICY "Authenticated can upload applications"
   ON storage.objects FOR INSERT
   TO authenticated
@@ -57,7 +66,6 @@ CREATE POLICY "Authenticated can upload applications"
     AND (storage.foldername(name))[1] = 'applications'
   );
 
--- Admin boleh hapus
 CREATE POLICY "Admins can delete attachments"
   ON storage.objects FOR DELETE
   TO authenticated

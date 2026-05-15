@@ -17,6 +17,10 @@ import {
   Building2,
   Plus,
   Pencil,
+  FileText,
+  Image as ImageIcon,
+  Download,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,6 +81,10 @@ type MemberApplication = {
   experience: string | null;
   motivation: string | null;
   portfolio_url: string | null;
+  formulir_url: string | null;
+  motivation_letter_url: string | null;
+  transkrip_url: string | null;
+  photo_url: string | null;
   status: 'pending' | 'approved' | 'rejected';
   rejected_reason: string | null;
   created_at: string;
@@ -96,6 +104,99 @@ type MemberWithDivision = Member & {
     role: 'guest' | 'user' | 'admin' | null;
   };
 };
+
+function getFileNameFromUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.split('/');
+    const raw = parts[parts.length - 1] || 'file';
+    return decodeURIComponent(raw.replace(/^\d+-[a-z0-9]+-/i, ''));
+  } catch {
+    return 'file';
+  }
+}
+
+async function handleDownload(url: string, fallbackName: string) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Download gagal');
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = getFileNameFromUrl(url) || fallbackName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objectUrl);
+  } catch (err: any) {
+    toast.error(err.message || 'Gagal mendownload file');
+  }
+}
+
+function AttachmentRow({
+  label,
+  url,
+  kind,
+}: {
+  label: string;
+  url: string | null;
+  kind: 'pdf' | 'image';
+}) {
+  if (!url) {
+    return (
+      <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-gray-200 bg-gray-50">
+        <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center">
+          {kind === 'pdf' ? (
+            <FileText className="w-4 h-4 text-gray-400" />
+          ) : (
+            <ImageIcon className="w-4 h-4 text-gray-400" />
+          )}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-500">{label}</p>
+          <p className="text-xs text-gray-400">Belum diisi</p>
+        </div>
+      </div>
+    );
+  }
+
+  const fileName = getFileNameFromUrl(url);
+  const Icon = kind === 'pdf' ? FileText : ImageIcon;
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg border border-electric-200 bg-electric-50/40">
+      <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-white flex items-center justify-center">
+        <Icon className="w-4 h-4 text-electric-600" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-navy-900">{label}</p>
+        <p className="text-xs text-gray-500 truncate">{fileName}</p>
+      </div>
+      <div className="flex items-center gap-1 flex-shrink-0">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-8 h-8 rounded-lg bg-white hover:bg-electric-100 flex items-center justify-center text-electric-600 transition-colors"
+          aria-label={`Buka ${label}`}
+          title="Buka di tab baru"
+        >
+          <ExternalLink className="w-4 h-4" />
+        </a>
+        <button
+          type="button"
+          onClick={() => handleDownload(url, label)}
+          className="w-8 h-8 rounded-lg bg-white hover:bg-electric-100 flex items-center justify-center text-electric-600 transition-colors"
+          aria-label={`Download ${label}`}
+          title="Download"
+        >
+          <Download className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminMembersPage() {
   const [activeTab, setActiveTab] = useState('applications');
@@ -256,17 +357,38 @@ export default function AdminMembersPage() {
 
   // Delete member
   async function handleDeleteMember(member: MemberWithDivision) {
-    if (!confirm(`Are you sure you want to remove ${member.name} from members?`)) return;
+    if (!confirm(`Hapus ${member.name} dari daftar member? User akan bisa mendaftar ulang.`))
+      return;
 
     try {
-      const { error } = await supabase.from('members').delete().eq('id', member.id);
+      // 1. Delete member row
+      const { error: memberError } = await supabase
+        .from('members')
+        .delete()
+        .eq('id', member.id);
+      if (memberError) throw memberError;
 
-      if (error) throw error;
+      // 2. Delete related member_applications so user can re-apply with a clean slate
+      if (member.profile_id) {
+        const { error: appError } = await supabase
+          .from('member_applications')
+          .delete()
+          .eq('profile_id', member.profile_id);
+        if (appError) {
+          console.error('Failed to clear applications:', appError);
+        }
 
-      toast.success('Member removed');
+        // 3. Reset profile division/position so badge tidak nyangkut
+        await supabase
+          .from('profiles')
+          .update({ division: null, position: null })
+          .eq('id', member.profile_id);
+      }
+
+      toast.success('Member berhasil dihapus. User bisa mendaftar ulang.');
       fetchData();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to remove member');
+      toast.error(error.message || 'Gagal menghapus member');
     }
   }
 
@@ -878,6 +1000,38 @@ export default function AdminMembersPage() {
                   <h4 className="font-semibold text-gray-900 mb-3">Motivation</h4>
                   <div className="p-3 bg-gray-50 rounded-lg">
                     <p className="text-sm whitespace-pre-wrap">{selectedApplication.motivation}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Lampiran Wajib */}
+              {(selectedApplication.formulir_url ||
+                selectedApplication.motivation_letter_url ||
+                selectedApplication.transkrip_url ||
+                selectedApplication.photo_url) && (
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-3">Lampiran</h4>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <AttachmentRow
+                      label="Formulir Pendaftaran"
+                      url={selectedApplication.formulir_url}
+                      kind="pdf"
+                    />
+                    <AttachmentRow
+                      label="Surat Motivasi"
+                      url={selectedApplication.motivation_letter_url}
+                      kind="pdf"
+                    />
+                    <AttachmentRow
+                      label="Transkrip Nilai"
+                      url={selectedApplication.transkrip_url}
+                      kind="pdf"
+                    />
+                    <AttachmentRow
+                      label="Pasfoto"
+                      url={selectedApplication.photo_url}
+                      kind="image"
+                    />
                   </div>
                 </div>
               )}
