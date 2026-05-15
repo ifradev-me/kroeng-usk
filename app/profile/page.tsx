@@ -17,6 +17,7 @@ import {
   AlertCircle,
   Shield,
   Hash,
+  UserCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,7 +42,7 @@ import { FileUpload } from '@/components/ui/file-upload';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-type MembershipStatus = 'none' | 'pending' | 'approved' | 'rejected';
+type MembershipStatus = 'none' | 'pending' | 'interview' | 'approved' | 'rejected';
 
 type MemberApplication = {
   id: string;
@@ -498,6 +499,9 @@ export default function ProfilePage() {
                     {membershipStatus === 'pending' && (
                       <Badge className="bg-yellow-100 text-yellow-700">Menunggu Review</Badge>
                     )}
+                    {membershipStatus === 'interview' && (
+                      <Badge className="bg-blue-100 text-blue-700">Tahap Wawancara</Badge>
+                    )}
                   </div>
                 </div>
               </div>
@@ -676,6 +680,30 @@ export default function ProfilePage() {
                       Pendaftaran anggota Anda sedang ditinjau oleh tim admin.
                     </p>
                     <p className="text-yellow-700 text-sm mt-2">
+                      Divisi yang dipilih: {memberApplication.division?.name || '-'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Status: Interview — lolos administrasi */}
+            {membershipStatus === 'interview' && memberApplication && (
+              <div className="p-6 rounded-xl bg-blue-50 border border-blue-200">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <UserCheck className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-blue-800">
+                      Selamat! Anda Lolos Tahap Administrasi
+                    </h3>
+                    <p className="text-blue-700 text-sm mt-1">
+                      Berkas pendaftaran Anda telah lolos review administrasi. Tahap selanjutnya
+                      adalah wawancara — mohon tunggu kabar dari tim KROENG melalui WhatsApp atau
+                      email untuk jadwal wawancaranya ya.
+                    </p>
+                    <p className="text-blue-700 text-sm mt-2">
                       Divisi yang dipilih: {memberApplication.division?.name || '-'}
                     </p>
                   </div>

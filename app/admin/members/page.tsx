@@ -21,6 +21,8 @@ import {
   Image as ImageIcon,
   Download,
   ExternalLink,
+  UserCheck,
+  ClipboardCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -85,7 +87,7 @@ type MemberApplication = {
   motivation_letter_url: string | null;
   transkrip_urls: string[] | null;
   photo_url: string | null;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'interview' | 'approved' | 'rejected';
   rejected_reason: string | null;
   created_at: string;
   division?: Division;
@@ -206,7 +208,7 @@ export default function AdminMembersPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDivision, setFilterDivision] = useState<string>('all');
-  const [filterStatus, setFilterStatus] = useState<string>('pending');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
 
   // Dialog states
   const [selectedApplication, setSelectedApplication] = useState<MemberApplication | null>(null);
@@ -281,7 +283,30 @@ export default function AdminMembersPage() {
     }
   }
 
-  // Approve application
+  // Stage 1: Lolos administrasi — pending → interview
+  async function handlePassAdministration(application: MemberApplication) {
+    setProcessing(true);
+    try {
+      const { error } = await supabase
+        .from('member_applications')
+        .update({ status: 'interview' })
+        .eq('id', application.id);
+
+      if (error) throw error;
+
+      toast.success(
+        `${application.name} lolos tahap administrasi. Lanjut ke tahap wawancara.`
+      );
+      fetchData();
+      setViewDialogOpen(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Gagal memproses');
+    } finally {
+      setProcessing(false);
+    }
+  }
+
+  // Stage 2: Final approve — interview → approved (jadi anggota tetap)
   async function handleApprove(application: MemberApplication) {
     setProcessing(true);
     try {
@@ -317,11 +342,11 @@ export default function AdminMembersPage() {
           .eq('id', application.profile_id);
       }
 
-      toast.success(`${application.name} has been approved as a member!`);
+      toast.success(`${application.name} resmi menjadi anggota tetap KROENG!`);
       fetchData();
       setViewDialogOpen(false);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to approve application');
+      toast.error(error.message || 'Gagal menyetujui pendaftaran');
     } finally {
       setProcessing(false);
     }
@@ -535,11 +560,18 @@ export default function AdminMembersPage() {
             Pending
           </Badge>
         );
+      case 'interview':
+        return (
+          <Badge className="bg-blue-100 text-blue-700">
+            <UserCheck className="w-3 h-3 mr-1" />
+            Wawancara
+          </Badge>
+        );
       case 'approved':
         return (
           <Badge className="bg-green-100 text-green-700">
             <CheckCircle2 className="w-3 h-3 mr-1" />
-            Approved
+            Anggota
           </Badge>
         );
       case 'rejected':
@@ -612,13 +644,13 @@ export default function AdminMembersPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                <UserCheck className="w-5 h-5 text-blue-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {applications.filter((a) => a.status === 'approved').length}
+                  {applications.filter((a) => a.status === 'interview').length}
                 </p>
-                <p className="text-sm text-gray-600">Approved</p>
+                <p className="text-sm text-gray-600">Wawancara</p>
               </div>
             </div>
           </CardContent>
@@ -692,7 +724,8 @@ export default function AdminMembersPage() {
               <SelectContent>
                 <SelectItem value="all">Semua Status</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="interview">Wawancara</SelectItem>
+                <SelectItem value="approved">Anggota</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
@@ -751,7 +784,31 @@ export default function AdminMembersPage() {
                               <>
                                 <Button
                                   size="sm"
+                                  className="bg-blue-600 hover:bg-blue-700 h-8 gap-1"
+                                  title="Lolos administrasi → wawancara"
+                                  onClick={() => handlePassAdministration(application)}
+                                >
+                                  <ClipboardCheck className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="h-8"
+                                  onClick={() => {
+                                    setSelectedApplication(application);
+                                    setRejectDialogOpen(true);
+                                  }}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
+                            {application.status === 'interview' && (
+                              <>
+                                <Button
+                                  size="sm"
                                   className="bg-green-600 hover:bg-green-700 h-8"
+                                  title="Setujui sebagai anggota tetap"
                                   onClick={() => handleApprove(application)}
                                 >
                                   <Check className="w-4 h-4" />
@@ -1072,7 +1129,7 @@ export default function AdminMembersPage() {
               )}
             </div>
           )}
-          <DialogFooter className="mt-6">
+          <DialogFooter className="mt-6 gap-2">
             {selectedApplication?.status === 'pending' && (
               <>
                 <Button
@@ -1082,7 +1139,28 @@ export default function AdminMembersPage() {
                   }}
                 >
                   <X className="w-4 h-4 mr-2" />
-                  Reject
+                  Tolak
+                </Button>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700"
+                  onClick={() => handlePassAdministration(selectedApplication)}
+                  disabled={processing}
+                >
+                  <ClipboardCheck className="w-4 h-4 mr-2" />
+                  {processing ? 'Memproses...' : 'Lolos Administrasi'}
+                </Button>
+              </>
+            )}
+            {selectedApplication?.status === 'interview' && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setRejectDialogOpen(true);
+                  }}
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Tolak
                 </Button>
                 <Button
                   className="bg-green-600 hover:bg-green-700"
@@ -1090,13 +1168,14 @@ export default function AdminMembersPage() {
                   disabled={processing}
                 >
                   <Check className="w-4 h-4 mr-2" />
-                  {processing ? 'Processing...' : 'Approve'}
+                  {processing ? 'Memproses...' : 'Jadikan Anggota Tetap'}
                 </Button>
               </>
             )}
-            {selectedApplication?.status !== 'pending' && (
+            {(selectedApplication?.status === 'approved' ||
+              selectedApplication?.status === 'rejected') && (
               <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
-                Close
+                Tutup
               </Button>
             )}
           </DialogFooter>

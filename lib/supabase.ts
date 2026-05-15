@@ -158,7 +158,7 @@ export type MemberApplication = {
   photo_url: string | null;
   
   // Status
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'interview' | 'approved' | 'rejected';
   rejected_reason: string | null;
   reviewed_by: string | null;
   reviewed_at: string | null;
