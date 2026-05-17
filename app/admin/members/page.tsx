@@ -217,6 +217,36 @@ export default function AdminMembersPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [processing, setProcessing] = useState(false);
 
+  // Confirm approval dialog
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    action: 'interview' | 'approve' | null;
+    application: MemberApplication | null;
+  }>({ open: false, action: null, application: null });
+
+  function openConfirmDialog(
+    action: 'interview' | 'approve',
+    application: MemberApplication
+  ) {
+    setConfirmDialog({ open: true, action, application });
+  }
+
+  function closeConfirmDialog() {
+    setConfirmDialog({ open: false, action: null, application: null });
+  }
+
+  async function handleConfirmAction() {
+    if (!confirmDialog.application || !confirmDialog.action) return;
+    const app = confirmDialog.application;
+    const action = confirmDialog.action;
+    closeConfirmDialog();
+    if (action === 'interview') {
+      await handlePassAdministration(app);
+    } else {
+      await handleApprove(app);
+    }
+  }
+
   // Edit member dialog
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<MemberWithDivision | null>(null);
@@ -786,7 +816,7 @@ export default function AdminMembersPage() {
                                   size="sm"
                                   className="bg-blue-600 hover:bg-blue-700 h-8 gap-1"
                                   title="Lolos administrasi → wawancara"
-                                  onClick={() => handlePassAdministration(application)}
+                                  onClick={() => openConfirmDialog('interview', application)}
                                 >
                                   <ClipboardCheck className="w-4 h-4" />
                                 </Button>
@@ -809,7 +839,7 @@ export default function AdminMembersPage() {
                                   size="sm"
                                   className="bg-green-600 hover:bg-green-700 h-8"
                                   title="Setujui sebagai anggota tetap"
-                                  onClick={() => handleApprove(application)}
+                                  onClick={() => openConfirmDialog('approve', application)}
                                 >
                                   <Check className="w-4 h-4" />
                                 </Button>
@@ -1143,7 +1173,10 @@ export default function AdminMembersPage() {
                 </Button>
                 <Button
                   className="bg-blue-600 hover:bg-blue-700"
-                  onClick={() => handlePassAdministration(selectedApplication)}
+                  onClick={() => {
+                    setViewDialogOpen(false);
+                    openConfirmDialog('interview', selectedApplication);
+                  }}
                   disabled={processing}
                 >
                   <ClipboardCheck className="w-4 h-4 mr-2" />
@@ -1164,7 +1197,10 @@ export default function AdminMembersPage() {
                 </Button>
                 <Button
                   className="bg-green-600 hover:bg-green-700"
-                  onClick={() => handleApprove(selectedApplication)}
+                  onClick={() => {
+                    setViewDialogOpen(false);
+                    openConfirmDialog('approve', selectedApplication);
+                  }}
                   disabled={processing}
                 >
                   <Check className="w-4 h-4 mr-2" />
@@ -1178,6 +1214,106 @@ export default function AdminMembersPage() {
                 Tutup
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Approval Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => {
+          if (!open) closeConfirmDialog();
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {confirmDialog.action === 'interview' ? (
+                <>
+                  <ClipboardCheck className="w-5 h-5 text-blue-600" />
+                  Loloskan ke Tahap Wawancara?
+                </>
+              ) : (
+                <>
+                  <UserCheck className="w-5 h-5 text-green-600" />
+                  Jadikan Anggota Tetap?
+                </>
+              )}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmDialog.action === 'interview' ? (
+                <>
+                  Anda yakin ingin meloloskan{' '}
+                  <span className="font-semibold text-gray-900">
+                    {confirmDialog.application?.name}
+                  </span>{' '}
+                  ke tahap wawancara? Status pelamar akan berubah menjadi{' '}
+                  <span className="font-medium">Wawancara</span>.
+                </>
+              ) : (
+                <>
+                  Anda yakin ingin menjadikan{' '}
+                  <span className="font-semibold text-gray-900">
+                    {confirmDialog.application?.name}
+                  </span>{' '}
+                  sebagai anggota tetap KROENG? Tindakan ini akan menambahkan mereka ke
+                  daftar anggota.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {confirmDialog.application && (
+            <div className="rounded-lg border bg-gray-50 p-3 space-y-1 text-sm">
+              <p>
+                <span className="text-gray-500">Divisi:</span>{' '}
+                <span className="font-medium">
+                  {confirmDialog.application.division?.name || '-'}
+                </span>
+              </p>
+              <p>
+                <span className="text-gray-500">Posisi:</span>{' '}
+                <span className="font-medium">{confirmDialog.application.position}</span>
+              </p>
+              <p>
+                <span className="text-gray-500">Email:</span>{' '}
+                <span className="font-medium">{confirmDialog.application.email}</span>
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-2 flex-col sm:flex-row">
+            <Button
+              variant="outline"
+              className="sm:mr-auto"
+              onClick={() => {
+                if (confirmDialog.application) {
+                  setSelectedApplication(confirmDialog.application);
+                  closeConfirmDialog();
+                  setViewDialogOpen(true);
+                }
+              }}
+              disabled={processing}
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Cek Lamaran
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={closeConfirmDialog}
+              disabled={processing}
+            >
+              <X className="w-4 h-4 mr-2" />
+              Tidak
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={handleConfirmAction}
+              disabled={processing}
+            >
+              <Check className="w-4 h-4 mr-2" />
+              {processing ? 'Memproses...' : 'Ya'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
