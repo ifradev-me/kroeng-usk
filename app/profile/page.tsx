@@ -45,7 +45,7 @@ import Link from 'next/link';
 
 // ===== TOGGLE PENDAFTARAN =====
 // Ubah ke `false` untuk membuka kembali pendaftaran anggota.
-const REGISTRATION_CLOSED = true;
+const REGISTRATION_CLOSED = false;
 // ===============================
 
 type MembershipStatus = 'none' | 'pending' | 'interview' | 'approved' | 'rejected';
