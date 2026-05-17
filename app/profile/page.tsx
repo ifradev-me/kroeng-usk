@@ -45,7 +45,7 @@ import Link from 'next/link';
 
 // ===== TOGGLE PENDAFTARAN =====
 // Ubah ke `false` untuk membuka kembali pendaftaran anggota.
-const REGISTRATION_CLOSED = false;
+const REGISTRATION_CLOSED = true;
 // ===============================
 
 type MembershipStatus = 'none' | 'pending' | 'interview' | 'approved' | 'rejected';
@@ -820,13 +820,22 @@ export default function ProfilePage() {
                         Alasan: {memberApplication.rejected_reason}
                       </p>
                     )}
-                    <Button
-                      onClick={handleReapply}
-                      className="mt-4 bg-red-600 hover:bg-red-700"
-                      size="sm"
-                    >
-                      Daftar Ulang
-                    </Button>
+                    {REGISTRATION_CLOSED ? (
+                      <div className="mt-4 p-3 rounded-lg bg-orange-50 border border-orange-200">
+                        <p className="text-orange-800 text-sm">
+                          Pendaftaran anggota baru saat ini sedang ditutup. Silakan menunggu
+                          informasi pembukaan periode berikutnya untuk mendaftar ulang.
+                        </p>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={handleReapply}
+                        className="mt-4 bg-red-600 hover:bg-red-700"
+                        size="sm"
+                      >
+                        Daftar Ulang
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -979,8 +988,9 @@ export default function ProfilePage() {
                   <div className="space-y-2">
                     <Label>Keahlian Anda (Opsional)</Label>
                     <p className="text-sm text-gray-500">
-                      Tambahkan keahlian yang relevan dengan divisi yang dipilih (contoh: Arduino,
-                      Python, AutoCAD, 3D Modeling, PCB Design, dll.)
+                      Tambahkan keahlian apa pun yang kamu miliki — tidak harus teknis. Contoh:
+                      Microsoft Word, Google Docs, editing video, desain Canva, public speaking,
+                      Arduino, Python, AutoCAD, dll.
                     </p>
                     <div className="flex gap-2">
                       <Input
@@ -1029,7 +1039,7 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setApplicationData({ ...applicationData, experience: e.target.value })
                       }
-                      placeholder="Ceritakan pengalaman Anda di bidang robotika, pemrograman, elektronik, atau bidang relevan lainnya. Sertakan kompetisi, proyek, atau organisasi yang pernah Anda ikuti..."
+                      placeholder="Ceritakan pengalaman apa pun yang pernah kamu jalani — tidak harus teknis. Misalnya: Pramuka, OSIS, volunteer, panitia acara, lomba, kompetisi, proyek pribadi, atau organisasi lain yang pernah kamu ikuti..."
                       rows={4}
                     />
                   </div>
