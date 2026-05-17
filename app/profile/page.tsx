@@ -39,10 +39,35 @@ import { supabase, Division } from '@/lib/supabase';
 import { AvatarUpload } from '@/components/ui/avatar-upload';
 import { SingleFileUpload } from '@/components/ui/single-file-upload';
 import { FileUpload } from '@/components/ui/file-upload';
+import { RegistrationClosed } from '@/components/registration-closed';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
+// ===== TOGGLE PENDAFTARAN =====
+// Ubah ke `false` untuk membuka kembali pendaftaran anggota.
+const REGISTRATION_CLOSED = false;
+// ===============================
+
 type MembershipStatus = 'none' | 'pending' | 'interview' | 'approved' | 'rejected';
+
+// Normalisasi: trim + collapse whitespace di tengah, jadikan null kalau kosong
+const cleanStr = (v: string | null | undefined): string =>
+  (v ?? '').trim().replace(/\s+/g, ' ');
+const cleanOrNull = (v: string | null | undefined): string | null => {
+  const s = cleanStr(v);
+  return s.length > 0 ? s : null;
+};
+// Email: trim + lowercase, hapus semua whitespace
+const cleanEmail = (v: string | null | undefined): string =>
+  (v ?? '').trim().toLowerCase().replace(/\s+/g, '');
+// Phone: trim + hapus karakter selain digit + (di awal)
+const cleanPhone = (v: string | null | undefined): string => {
+  const t = (v ?? '').trim();
+  // Pertahankan + di awal, hapus semua non-digit di sisanya
+  const hasPlus = t.startsWith('+');
+  const digits = t.replace(/\D/g, '');
+  return hasPlus && digits.length > 0 ? `+${digits}` : digits;
+};
 
 type MemberApplication = {
   id: string;
@@ -176,22 +201,70 @@ export default function ProfilePage() {
     e.preventDefault();
     setAuthLoading(true);
 
+    const email = cleanEmail(formData.email);
+    const fullName = cleanStr(formData.fullName);
+    // Password: jangan trim tengah, hanya potong leading/trailing whitespace
+    const password = formData.password.replace(/^\s+|\s+$/g, '');
+
+    if (!email) {
+      toast.error('Email tidak valid');
+      setAuthLoading(false);
+      return;
+    }
+    if (authMode === 'signup' && !fullName) {
+      toast.error('Nama lengkap wajib diisi');
+      setAuthLoading(false);
+      return;
+    }
+
+    const showAuthError = (raw: string | undefined) => {
+      const msg = (raw || '').toLowerCase();
+      // Browser localized "Failed to fetch" → "gagal mengambil"
+      if (
+        msg.includes('failed to fetch') ||
+        msg.includes('gagal mengambil') ||
+        msg.includes('networkerror')
+      ) {
+        toast.error(
+          'Koneksi ke server gagal. Cek internet Anda, atau project Supabase mungkin sedang paused.'
+        );
+        return;
+      }
+      if (msg.includes('invalid login') || msg.includes('credentials')) {
+        toast.error('Email atau kata sandi salah');
+        return;
+      }
+      if (msg.includes('already registered') || msg.includes('user already')) {
+        toast.error('Email sudah terdaftar. Coba login.');
+        return;
+      }
+      if (msg.includes('password')) {
+        toast.error('Password tidak valid (minimal 8 karakter)');
+        return;
+      }
+      toast.error(raw || 'Terjadi kesalahan');
+    };
+
     try {
       if (authMode === 'signin') {
-        const { error } = await signIn(formData.email, formData.password);
+        const { error } = await signIn(email, password);
         if (error) {
-          toast.error(error.message);
+          showAuthError(error.message);
         } else {
           toast.success('Selamat datang kembali!');
         }
       } else {
-        const { error } = await signUp(formData.email, formData.password, formData.fullName);
+        const { error } = await signUp(email, password, fullName);
         if (error) {
-          toast.error(error.message);
+          showAuthError(error.message);
         } else {
           toast.success('Akun berhasil dibuat! Silakan cek email untuk verifikasi.');
         }
       }
+    } catch (err: any) {
+      // Network-level errors yang tidak dibungkus Supabase
+      console.error('Auth error:', err);
+      showAuthError(err?.message);
     } finally {
       setAuthLoading(false);
     }
@@ -204,11 +277,12 @@ export default function ProfilePage() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          full_name: profileData.full_name,
-          nim: profileData.nim || null,
-          division: profileData.division,
-          position: profileData.position,
-          bio: profileData.bio,
+          full_name: cleanStr(profileData.full_name),
+          nim: cleanOrNull(profileData.nim),
+          division: cleanStr(profileData.division),
+          position: cleanStr(profileData.position),
+          // Bio: trim leading/trailing only — jangan collapse newlines/spaces di tengah
+          bio: profileData.bio.trim(),
           updated_at: new Date().toISOString(),
         })
         .eq('id', user.id);
@@ -227,12 +301,25 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!user || !applicationData.division_id) return;
 
+    // Normalisasi sebelum validasi
+    const cleaned = {
+      phone: cleanPhone(applicationData.phone),
+      whatsapp: cleanPhone(applicationData.whatsapp),
+      nim: cleanStr(applicationData.nim).replace(/\s+/g, ''),
+      year: cleanStr(applicationData.year).replace(/\s+/g, ''),
+      division_reason: applicationData.division_reason.trim(),
+      experience: applicationData.experience.trim(),
+      motivation: applicationData.motivation.trim(),
+      portfolio_url: cleanStr(applicationData.portfolio_url).replace(/\s+/g, ''),
+      skills: applicationData.skills.map((s) => cleanStr(s)).filter(Boolean),
+    };
+
     // Validation
-    if (!applicationData.phone || !applicationData.whatsapp) {
+    if (!cleaned.phone || !cleaned.whatsapp) {
       toast.error('Mohon isi nomor telepon dan WhatsApp');
       return;
     }
-    if (!applicationData.division_reason) {
+    if (!cleaned.division_reason) {
       toast.error('Mohon jelaskan alasan memilih divisi ini');
       return;
     }
@@ -251,19 +338,19 @@ export default function ProfilePage() {
     try {
       const { error } = await supabase.from('member_applications').insert({
         profile_id: user.id,
-        name: profile?.full_name || '',
-        email: user.email,
-        phone: applicationData.phone,
-        whatsapp: applicationData.whatsapp,
-        nim: applicationData.nim,
+        name: cleanStr(profile?.full_name || ''),
+        email: cleanEmail(user.email || ''),
+        phone: cleaned.phone,
+        whatsapp: cleaned.whatsapp,
+        nim: cleaned.nim || null,
         division_id: applicationData.division_id,
-        position: applicationData.position,
-        year: applicationData.year,
-        division_reason: applicationData.division_reason,
-        skills: applicationData.skills,
-        experience: applicationData.experience,
-        motivation: applicationData.motivation,
-        portfolio_url: applicationData.portfolio_url || null,
+        position: cleanStr(applicationData.position),
+        year: cleaned.year || null,
+        division_reason: cleaned.division_reason,
+        skills: cleaned.skills,
+        experience: cleaned.experience || null,
+        motivation: cleaned.motivation || null,
+        portfolio_url: cleaned.portfolio_url || null,
         formulir_url: applicationData.formulir_url,
         motivation_letter_url: applicationData.motivation_letter_url,
         transkrip_urls: applicationData.transkrip_urls,
@@ -288,7 +375,12 @@ export default function ProfilePage() {
       if (data) setMemberApplication(data);
     } catch (error: any) {
       console.error('Application submit error:', error);
-      toast.error('Gagal mengirim aplikasi. Silakan coba lagi.');
+      const detail = error?.message || error?.error_description || error?.details || '';
+      toast.error(
+        detail
+          ? `Gagal mengirim pendaftaran: ${detail}`
+          : 'Gagal mengirim pendaftaran. Cek koneksi atau coba lagi.'
+      );
     } finally {
       setApplyingMembership(false);
     }
@@ -740,8 +832,13 @@ export default function ProfilePage() {
               </div>
             )}
 
+            {/* Status: None - Pendaftaran Ditutup */}
+            {membershipStatus === 'none' && REGISTRATION_CLOSED && (
+              <RegistrationClosed />
+            )}
+
             {/* Status: None - Show Application Form */}
-            {membershipStatus === 'none' && (
+            {membershipStatus === 'none' && !REGISTRATION_CLOSED && (
               <form onSubmit={handleApplyMembership} className="space-y-8">
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
